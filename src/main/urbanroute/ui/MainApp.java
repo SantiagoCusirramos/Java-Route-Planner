@@ -6,7 +6,7 @@ import java.awt.event.*;
 import java.awt.geom.*;
 import java.util.*;
 
-public class CityGraphVisualizer extends JPanel {
+class CityGraphVisualizer extends JPanel {
 
     private double scale = 1.0;
 
