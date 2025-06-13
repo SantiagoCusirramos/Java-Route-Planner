@@ -1,4 +1,4 @@
-package main.urbanroute.ui;
+package urbanroute.ui;
 
 import javax.swing.*;
 import java.awt.*;
