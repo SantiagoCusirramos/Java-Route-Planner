@@ -1,4 +1,4 @@
-package Stack;
+package DataStructure.Stack;
 
 import Exceptions.ExceptionIsEmpty;
 
@@ -13,7 +13,7 @@ public class ArrayStack<E> implements Stack<E> {
 
     public void push(E e) {
         if(isFull()){
-            System.out.println("Stack Full");
+            System.out.println("DataStructure.Stack Full");
             return;
         }
         if(top < stack.length - 1){

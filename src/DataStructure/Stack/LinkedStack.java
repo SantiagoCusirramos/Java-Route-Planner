@@ -1,7 +1,7 @@
-package Stack;
+package DataStructure.Stack;
 
 import Exceptions.ExceptionIsEmpty;
-import Node.Node;
+import DataStructure.Node.Node;
 
 public class LinkedStack<E> implements Stack<E> {
 	private Node<E> stack;

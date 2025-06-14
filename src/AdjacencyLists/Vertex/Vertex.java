@@ -1,7 +1,7 @@
 package AdjacencyLists.Vertex;
 
 import AdjacencyLists.Edge.Edge;
-import LinkedList.LinkedList;
+import DataStructure.LinkedList.LinkedList;
 
 public class Vertex<E> {
     private E data;

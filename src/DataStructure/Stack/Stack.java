@@ -1,4 +1,4 @@
-package Stack;
+package DataStructure.Stack;
 import Exceptions.ExceptionIsEmpty;
 
 public interface Stack<E> {

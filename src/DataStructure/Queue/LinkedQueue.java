@@ -1,6 +1,6 @@
-package Queue;
+package DataStructure.Queue;
 
-import Node.Node;
+import DataStructure.Node.Node;
 import Exceptions.ExceptionIsEmpty;
 
 public class LinkedQueue<E> implements Queue<E> {
