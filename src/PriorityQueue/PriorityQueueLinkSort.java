@@ -3,64 +3,32 @@ package PriorityQueue;
 import DataStructure.Node.Node;
 import Exceptions.ExceptionIsEmpty;
 
-public class PriorityQueueLinkSort<E, N extends Comparable<N>> implements PriorityQueue<E, N> {
-    class EntryNode {
-        E data;
-        N priority;
+public class PriorityQueueLinkSort<E extends Comparable<E>> implements PriorityQueue<E> {
 
-        EntryNode(E data, N priority) {
-            this.data = data;
-            this.priority = priority;
-        }
-
-        public E getData() {
-            return data;
-        }
-        public N getPriority() {
-            return priority;
-        }
-
-        public void setData(E data) {
-            this.data = data;
-        }
-        public void setPriority(N priority) {
-            this.priority = priority;
-        }
-
-        @Override
-        public String toString() {
-            return "EntryNode{" +
-                    "data=" + data +
-                    ", priority=" + priority +
-                    '}';
-        }
-    }
-
-    private Node<EntryNode> first;
-    private Node<EntryNode> last;
+    private Node<E> first;
+    private Node<E> last;
 
     public PriorityQueueLinkSort() {
         this.first = null;
         this.last = null;
     }
 
-    public void enqueue(E x, N pr) {
-        EntryNode newEntry = new EntryNode(x, pr);
-        Node<EntryNode> newNode = new Node<>(newEntry);
+    public void enqueue(E item) {
+        Node<E> newNode = new Node<>(item);
 
         if (isEmpty()) {
             first = last = newNode;
             return;
         }
 
-        if (pr.compareTo(first.getData().getPriority()) < 0) {
+        if (item.compareTo(first.getData()) < 0) {
             newNode.setNext(first);
             first = newNode;
             return;
         }
 
-        Node<EntryNode> currentNode = first;
-        while (currentNode.getNext() != null && pr.compareTo(currentNode.getNext().getData().priority) >= 0) {
+        Node<E> currentNode = first;
+        while (currentNode.getNext() != null && item.compareTo(currentNode.getNext().getData()) >= 0) {
             currentNode = currentNode.getNext();
         }
 
@@ -77,7 +45,7 @@ public class PriorityQueueLinkSort<E, N extends Comparable<N>> implements Priori
             throw new ExceptionIsEmpty();
         }
 
-        E item = first.getData().getData();
+        E item = first.getData();
         first = first.getNext();
 
         if (first == null) {
@@ -90,7 +58,7 @@ public class PriorityQueueLinkSort<E, N extends Comparable<N>> implements Priori
         if(isEmpty()){
             throw new ExceptionIsEmpty();
         } else {
-            return first.getData().getData();
+            return first.getData();
         }
     }
 
@@ -98,7 +66,7 @@ public class PriorityQueueLinkSort<E, N extends Comparable<N>> implements Priori
         if(isEmpty()){
             throw new ExceptionIsEmpty();
         } else {
-            return last.getData().getData();
+            return last.getData();
         }
     }
 
@@ -108,7 +76,7 @@ public class PriorityQueueLinkSort<E, N extends Comparable<N>> implements Priori
 
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        Node<EntryNode> current = first;
+        Node<E> current = first;
         while (current != null) {
             sb.append(current.getData().toString());
             if (current.getNext() != null)

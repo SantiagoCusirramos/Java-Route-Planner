@@ -5,12 +5,15 @@ import AdjacencyLists.GraphLink.GraphLink;
 import AdjacencyLists.Vertex.Vertex;
 import DataStructure.LinkedList.LinkedList;
 import DataStructure.Node.Node;
+import Exceptions.ExceptionIsEmpty;
+import PriorityQueue.PriorityQueueLinkSort;
 
-import java.util.HashMap;
-import java.util.PriorityQueue;
+import java.util.HashMap; // esto debemos de consultar si lo podemos implementar o usar
+
 
 public class Dijkstra {
-    public static <E> LinkedList<E> shortestPath(GraphLink<E> graph, E start, E end) {
+
+    public static <E> LinkedList<E> shortestPath(GraphLink<E> graph, E start, E end) throws ExceptionIsEmpty {
         if (graph == null || start == null || end == null) {
             return null;
         }
@@ -22,33 +25,38 @@ public class Dijkstra {
             return null;
         }
 
-        // 1. Inicialización
+
         HashMap<Vertex<E>, Integer> distances = new HashMap<>();
         HashMap<Vertex<E>, Vertex<E>> predecessors = new HashMap<>();
-        PriorityQueue<VertexDistance<E>> priorityQueue = new PriorityQueue<>();
+        PriorityQueueLinkSort priorityQueue = new PriorityQueueLinkSort<>();
 
-        // Todos los nodos empiezan con distancia infinita, excepto el origen
+
         Node<Vertex<E>> current = graph.listVertex.getHead();
+
+
         while (current != null) {
             distances.put(current.getData(), Integer.MAX_VALUE);
             predecessors.put(current.getData(), null);
             current = current.getNext();
         }
-        distances.put(startVertex, 0);
-        priorityQueue.add(new VertexDistance<>(startVertex, 0));
 
-        // 2. Procesamiento
+        distances.put(startVertex, 0);
+        priorityQueue.enqueue(new VertexDistance<>(startVertex, 0));
+
+
         while (!priorityQueue.isEmpty()) {
-            VertexDistance<E> currentVertexDistance = priorityQueue.poll();
+            VertexDistance<E> currentVertexDistance = (VertexDistance<E>) priorityQueue.dequeue();
             Vertex<E> currentVertex = currentVertexDistance.vertex;
 
-            // Si llegamos al destino, terminamos
+
             if (currentVertex.equals(endVertex)) {
                 break;
             }
 
-            // Explorar vecinos
+
             Node<Edge<E>> edgeNode = currentVertex.getListAdj().getHead();
+
+
             while (edgeNode != null) {
                 Vertex<E> neighbor = edgeNode.getData().getRefDest();
                 int edgeWeight = edgeNode.getData().getWeight();
@@ -58,7 +66,7 @@ public class Dijkstra {
                 if (newDistance < distances.get(neighbor)) {
                     distances.put(neighbor, newDistance);
                     predecessors.put(neighbor, currentVertex);
-                    priorityQueue.add(new VertexDistance<>(neighbor, newDistance));
+                    priorityQueue.enqueue(new VertexDistance<>(neighbor, newDistance));
                 }
                 edgeNode = edgeNode.getNext();
             }
