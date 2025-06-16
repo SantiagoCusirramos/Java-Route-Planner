@@ -15,7 +15,7 @@ public class GraphLink<E> {
 
     public GraphLink(boolean isDirected, boolean isWeighted) {
         listVertex = new LinkedList<Vertex<E>>();
-        isDirected = isDirected;
+        this.isDirected = isDirected;
         this.isWeighted = isWeighted;
     }
 
