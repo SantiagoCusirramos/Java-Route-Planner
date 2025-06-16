@@ -72,7 +72,6 @@ public class Dijkstra {
             }
         }
 
-        // 3. Reconstruir el camino
         return reconstructPath(predecessors, endVertex);
     }
 
