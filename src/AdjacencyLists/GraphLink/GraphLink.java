@@ -9,7 +9,7 @@ import DataStructure.Stack.LinkedStack;
 import DataStructure.Node.Node;
 
 public class GraphLink<E> {
-    protected LinkedList<Vertex<E>> listVertex; // lista de vertices, estos son los que bajan
+    public LinkedList<Vertex<E>> listVertex; // lista de vertices, estos son los que bajan
     protected boolean isDirected; // dirigido o no
     protected boolean isWeighted; // peso o no
 
@@ -75,7 +75,7 @@ public class GraphLink<E> {
         }
     }
 
-    private Vertex<E> findVertex(E data) {
+    public Vertex<E> findVertex(E data) {
         Node<Vertex<E>> current = listVertex.getHead();
 
         while(current != null) {
