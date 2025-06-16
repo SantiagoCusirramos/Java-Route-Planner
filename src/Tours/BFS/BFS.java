@@ -3,9 +3,10 @@ package Tours.BFS;
 import AdjacencyLists.Edge.Edge;
 import AdjacencyLists.GraphLink.GraphLink;
 import AdjacencyLists.Vertex.Vertex;
+import DataStructure.LinkedList.LinkedList;
+import DataStructure.Queue.LinkedQueue;
 import Exceptions.ExceptionIsEmpty;
-import LinkedList.LinkedList;
-import Queue.LinkedQueue;
+
 import DataStructure.Node.Node;
 
 public class BFS<E> {
@@ -29,9 +30,7 @@ public class BFS<E> {
         return pathFound ? reconstructPath(pathResult.vertices, pathResult.parents, pathResult.endVertex) : null;
     }
     
-    /**
-     * Valida los datos de entrada y obtiene el vértice inicial
-     */
+
     private Vertex<E> validateAndGetStartVertex(GraphLink<E> graph, E startData) {
         if (startData == null) {
             return null;

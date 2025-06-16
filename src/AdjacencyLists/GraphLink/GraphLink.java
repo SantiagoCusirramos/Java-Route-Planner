@@ -239,7 +239,7 @@ public class GraphLink<E> {
     }
 
     // este es mi metodo aux para explorar y ponerlos todos como que no han sido visitaos
-    private void resetVisitedFlags() {
+    public void resetVisitedFlags() {
         Node<Vertex<E>> current = listVertex.getHead();
 
         while (current != null) {
