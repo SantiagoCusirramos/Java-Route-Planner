@@ -1,4 +1,4 @@
-package PriorityQueue;
+package DataStructure.PriorityQueue;
 
 import DataStructure.Node.Node;
 import Exceptions.ExceptionIsEmpty;

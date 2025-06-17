@@ -6,7 +6,7 @@ import AdjacencyLists.Vertex.Vertex;
 import DataStructure.LinkedList.LinkedList;
 import DataStructure.Node.Node;
 import Exceptions.ExceptionIsEmpty;
-import PriorityQueue.PriorityQueueLinkSort;
+import DataStructure.PriorityQueue.PriorityQueueLinkSort;
 
 import java.util.HashMap; // esto debemos de consultar si lo podemos implementar o usar
 

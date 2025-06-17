@@ -1,4 +1,4 @@
-package PriorityQueue;
+package DataStructure.PriorityQueue;
 import Exceptions.ExceptionIsEmpty;
 
 public interface PriorityQueue<E> {
