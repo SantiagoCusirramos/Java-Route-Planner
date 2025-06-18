@@ -1,27 +1,29 @@
-package Interfaz;
-
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.*;
-import java.util.ArrayList;
 
 import Controller.Controller.*;
+import DataStructure.LinkedList.LinkedList;
 
 public class Interfaz extends JFrame {
     private Controller controller;
-
+    private LinkedList<String> vertices;
+    private LinkedList<AristaGrafica> aristas;
+    private LinkedList<JButton> botoenesVer;
+    private DibujoPanel panel;
 
     public Interfaz(){
 
-        vertices = new ArrayList<>();
-        aristas = new ArrayList<>();
+        vertices = new LinkedList<String>();
+        aristas = new LinkedList<AristaGrafica>();
+        botoenesVer = new LinkedList<JButton>();
 
         setTitle("Editor de Grafo");
-        setSize(800, 600);
+        setSize(1200, 1000);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setLayout(new BorderLayout());
 
         panel = new DibujoPanel();
+        panel.setLayout(null);
         add(panel, BorderLayout.CENTER);
 
         JPanel botones = new JPanel();
@@ -34,8 +36,8 @@ public class Interfaz extends JFrame {
 
         botones.add(btnAgregarVertice);
         botones.add(btnAgregarArista);
-
         add(botones, BorderLayout.SOUTH);
+
         setVisible(true);
     }
 
@@ -43,15 +45,35 @@ public class Interfaz extends JFrame {
         String nombre = JOptionPane.showInputDialog(this, "Ingrese nombre del vertice:");
         if (nombre != null && !nombre.isEmpty()) {
             controller.addZone(nombre);
-            vertices.add((nombre));
+            vertices.insertLast((nombre));
+
+            JButton btn = new JButton(nombre);
+            btn.setBounds(0,0,60,30);
+            btn.addActionListener(e -> abrirVentanaVertice(nombre));
+            botonesVertices.insertLast(btn);
+            panel.add(btn);
             panel.repaint();
         }
     }
+
+    private void abrirVentanaVertice(String nombre) {
+        JFrame ventana = new JFrame("Vértice: " + nombre);
+        ventana.setSize(300, 150);
+        ventana.setLocationRelativeTo(this);
+        ventana.add(new JLabel("Este es el vértice: " + nombre, SwingConstants.CENTER));
+        ventana.setVisible(true);
+    }
+
 
     private void agregarArista(){
         if (vertices.size() < 2) {
             JOptionPane.showMessageDialog(this, "Agrega al menos dos vertices.");
             return;
+        }
+
+        String[] vs = new String[vertices.length()];
+        for(int i = 1, i<vs.length; i++){
+            vs[i] = vertices.getNodeAtIndex(i);
         }
 
         String origen = (String) JOptionPane.showInputDialog(this, "Origen:", "Vertices", JOptionPane.PLAIN_MESSAGE, null, vertices.toArray(), null);
@@ -65,8 +87,7 @@ public class Interfaz extends JFrame {
         }
 
         controller.connectZones(origen, destino, peso);
-
-        aristas.add(new AristaGrafica(origen, destino, peso));
+        aristas.insertLast(new AristaGrafica(origen, destino, peso));
         panel.repaint();
 
     }
