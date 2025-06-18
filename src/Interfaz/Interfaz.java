@@ -31,6 +31,14 @@ public class Interfaz extends JFrame {
         panel.setLayout(null);
         add(panel, BorderLayout.CENTER);
 
+        // Agregar listener para redimensionamiento
+        addComponentListener(new java.awt.event.ComponentAdapter() {
+            @Override
+            public void componentResized(java.awt.event.ComponentEvent evt) {
+                panel.repaint();
+            }
+        });
+
         JPanel botones = new JPanel();
 
         JButton btnAgregarVertice = new JButton("Agregar vertice");
@@ -120,14 +128,26 @@ public class Interfaz extends JFrame {
             if (vertices.length() == 0) {
                 // Opcional: dibujar un mensaje cuando no hay vértices
                 g.setColor(Color.GRAY);
-                g.drawString("Agrega vértices para comenzar", getWidth()/2 - 100, getHeight()/2);
+                g.setFont(new Font("Arial", Font.BOLD, 16));
+                String mensaje = "Agrega vértices para comenzar";
+                FontMetrics fm = g.getFontMetrics();
+                int x = (getWidth() - fm.stringWidth(mensaje)) / 2;
+                int y = getHeight() / 2;
+                g.drawString(mensaje, x, y);
                 return;
             }
 
-            int radio = 60;
+            // Calcular dimensiones dinámicamente
+            int radioBoton = Math.max(40, Math.min(80, getWidth() / 20)); // Radio adaptativo
             int centroX = getWidth() / 2;
             int centroY = getHeight() / 2;
-            int r = Math.min(centroX, centroY) - (vertices.length() > 10 ? 100 : 60);
+            
+            // Radio del círculo que contiene los vértices (adaptativo al tamaño de pantalla)
+            int margen = radioBoton + 20;
+            int r = Math.min(centroX - margen, centroY - margen);
+            
+            // Asegurar un radio mínimo
+            r = Math.max(r, 100);
             
             // Manejo especial para un solo vértice
             double angulo;
@@ -151,11 +171,21 @@ public class Interfaz extends JFrame {
                 }
                 posiciones[i] = new Point(x, y);
 
+                // Reposicionar botón con tamaño adaptativo
                 JButton btn = botonesVer.getNodeAtIndex(i);
-                btn.setBounds(x-radio/2, y-radio/2, radio, 30);
+                int anchoBoton = Math.max(60, radioBoton + 10);
+                int altoBoton = Math.max(25, radioBoton / 2);
+                btn.setBounds(x - anchoBoton/2, y - altoBoton/2, anchoBoton, altoBoton);
+                
+                // Ajustar tamaño de fuente del botón
+                int fontSize = Math.max(8, Math.min(14, radioBoton / 5));
+                btn.setFont(new Font("Arial", Font.BOLD, fontSize));
             }
 
             // Dibujar aristas
+            Graphics2D g2d = (Graphics2D) g;
+            g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            
             for (int k = 0; k < aristas.length(); k++) {
                 AristaGrafica a = aristas.getNodeAtIndex(k);
                 int i = vertices.findIndex(a.origen);
@@ -165,18 +195,30 @@ public class Interfaz extends JFrame {
                     Point p1 = posiciones[i];
                     Point p2 = posiciones[j];
 
-                    g.setColor(Color.BLACK);
-                    drawArrowLine(g, p1.x, p1.y, p2.x, p2.y, 10, 6);
+                    g2d.setColor(Color.BLACK);
+                    g2d.setStroke(new BasicStroke(2));
+                    drawArrowLine(g2d, p1.x, p1.y, p2.x, p2.y, 12, 8);
 
+                    // Dibujar peso de la arista
                     int midX = (p1.x + p2.x) / 2;
                     int midY = (p1.y + p2.y) / 2;
-                    g.setColor(Color.RED);
-                    g.drawString(String.valueOf(a.peso), midX, midY);
+                    g2d.setColor(Color.RED);
+                    g2d.setFont(new Font("Arial", Font.BOLD, Math.max(10, radioBoton / 6)));
+                    
+                    // Fondo blanco para el peso
+                    String pesoStr = String.valueOf(a.peso);
+                    FontMetrics fm = g2d.getFontMetrics();
+                    int pesoWidth = fm.stringWidth(pesoStr);
+                    int pesoHeight = fm.getHeight();
+                    g2d.setColor(Color.WHITE);
+                    g2d.fillRect(midX - pesoWidth/2 - 2, midY - pesoHeight/2 - 2, pesoWidth + 4, pesoHeight);
+                    g2d.setColor(Color.RED);
+                    g2d.drawString(pesoStr, midX - pesoWidth/2, midY + fm.getAscent()/2);
                 }
             }
         }
 
-        private void drawArrowLine(Graphics g, int x1, int y1, int x2, int y2, int d, int h) {
+        private void drawArrowLine(Graphics2D g, int x1, int y1, int x2, int y2, int d, int h) {
             int dx = x2 - x1, dy = y2 - y1;
             double D = Math.sqrt(dx * dx + dy * dy);
             
