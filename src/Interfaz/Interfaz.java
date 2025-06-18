@@ -1,8 +1,12 @@
+package Interfaz;
+
 import javax.swing.*;
 import java.awt.*;
 
-import Controller.Controller.*;
+import Controller.Controller;
 import DataStructure.LinkedList.LinkedList;
+import Exceptions.ItemDuplicated;
+import Exceptions.ItemNotFound;
 
 public class Interfaz extends JFrame {
     private Controller controller;
@@ -29,10 +33,22 @@ public class Interfaz extends JFrame {
         JPanel botones = new JPanel();
 
         JButton btnAgregarVertice = new JButton("Agregar vertice");
-        btnAgregarVertice.addActionListener(e -> agregarVertice());
+        btnAgregarVertice.addActionListener(e -> {
+            try {
+                agregarVertice();
+            } catch (ItemDuplicated ex) {
+                throw new RuntimeException(ex);
+            }
+        });
 
         JButton btnAgregarArista = new JButton("Agregar arista");
-        btnAgregarArista.addActionListener(e -> agregarArista());
+        btnAgregarArista.addActionListener(e -> {
+            try {
+                agregarArista();
+            } catch (ItemNotFound ex) {
+                throw new RuntimeException(ex);
+            }
+        });
 
         botones.add(btnAgregarVertice);
         botones.add(btnAgregarArista);
@@ -41,7 +57,7 @@ public class Interfaz extends JFrame {
         setVisible(true);
     }
 
-    private void agregarVertice(){
+    private void agregarVertice() throws ItemDuplicated {
         String nombre = JOptionPane.showInputDialog(this, "Ingrese nombre del vertice:");
         if (nombre != null && !nombre.isEmpty()) {
             controller.addZone(nombre);
@@ -50,7 +66,7 @@ public class Interfaz extends JFrame {
             JButton btn = new JButton(nombre);
             btn.setBounds(0,0,60,30);
             btn.addActionListener(e -> abrirVentanaVertice(nombre));
-            botonesVertices.insertLast(btn);
+            botoenesVer.insertLast(btn);
             panel.add(btn);
             panel.repaint();
         }
@@ -65,17 +81,17 @@ public class Interfaz extends JFrame {
     }
 
 
-    private void agregarArista(){
-        if (vertices.size() < 2) {
+    private void agregarArista() throws ItemNotFound {
+        if (vertices.length() < 2) {
             JOptionPane.showMessageDialog(this, "Agrega al menos dos vertices.");
             return;
         }
 
         String[] vs = new String[vertices.length()];
-        for(int i = 1, i<vs.length; i++){
+        for(int i = 1; i<vs.length; i++){
             vs[i] = vertices.getNodeAtIndex(i);
         }
-
+        // 94 - 95 -> toArray
         String origen = (String) JOptionPane.showInputDialog(this, "Origen:", "Vertices", JOptionPane.PLAIN_MESSAGE, null, vertices.toArray(), null);
         String destino = (String) JOptionPane.showInputDialog(this, "Destino:", "Vertices", JOptionPane.PLAIN_MESSAGE, null, vertices.toArray(), null);
 
@@ -101,11 +117,11 @@ public class Interfaz extends JFrame {
             int centroX = getWidth() / 2;
             int centroY = getHeight() / 2;
             int r = Math.min(centroX, centroY) - 60;
-            double angulo = 2 * Math.PI / vertices.size();
+            double angulo = 2 * Math.PI / vertices.length();
 
             // Posiciones de los vértices
-            Point[] posiciones = new Point[vertices.size()];
-            for (int i = 0; i < vertices.size(); i++) {
+            Point[] posiciones = new Point[vertices.length()];
+            for (int i = 0; i < vertices.length(); i++) {
                 int x = (int) (centroX + r * Math.cos(i * angulo));
                 int y = (int) (centroY + r * Math.sin(i * angulo));
                 posiciones[i] = new Point(x, y);
@@ -115,8 +131,8 @@ public class Interfaz extends JFrame {
             }
 
             // Dibujar aristas
-            for (in k = 0, k < aristas.length(); k++) {
-                ArisaGrafica a = aristas.getNodeAtIndex(k);
+            for (int k = 0; k < aristas.length(); k++) {
+                AristaGrafica a = aristas.getNodeAtIndex(k);
                 int i = vertices.findIndex(a.origen);
                 int j = vertices.findIndex(a.destino);
 
@@ -126,22 +142,21 @@ public class Interfaz extends JFrame {
                 g.setColor(Color.BLACK);
                 drawArrowLine(g, p1.x, p1.y, p2.x, p2.y, 10, 6);
 
-                if (esPonderado) {
-                    int midX = (p1.x + p2.x) / 2;
-                    int midY = (p1.y + p2.y) / 2;
-                    g.setColor(Color.RED);
-                    g.drawString(String.valueOf(a.peso), midX, midY);
-                }
+                int midX = (p1.x + p2.x) / 2;
+                int midY = (p1.y + p2.y) / 2;
+                g.setColor(Color.RED);
+                g.drawString(String.valueOf(a.peso), midX, midY);
+
             }
 
             // Dibujar vértices
-            for (int i = 0; i < vertices.size(); i++) {
+            for (int i = 0; i < vertices.length(); i++) {
                 Point p = posiciones[i];
                 g.setColor(Color.YELLOW);
                 g.fillOval(p.x - radio / 2, p.y - radio / 2, radio, radio);
                 g.setColor(Color.BLACK);
                 g.drawOval(p.x - radio / 2, p.y - radio / 2, radio, radio);
-                g.drawString(vertices.get(i), p.x - 10, p.y + 4);
+                g.drawString(vertices.get(i), p.x - 10, p.y + 4); // ver metodo
             }
         }
 
