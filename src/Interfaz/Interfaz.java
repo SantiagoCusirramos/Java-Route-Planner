@@ -116,17 +116,39 @@ public class Interfaz extends JFrame {
         protected void paintComponent(Graphics g) {
             super.paintComponent(g);
 
+            // Verificar si hay vértices para dibujar
+            if (vertices.length() == 0) {
+                // Opcional: dibujar un mensaje cuando no hay vértices
+                g.setColor(Color.GRAY);
+                g.drawString("Agrega vértices para comenzar", getWidth()/2 - 100, getHeight()/2);
+                return;
+            }
+
             int radio = 60;
             int centroX = getWidth() / 2;
             int centroY = getHeight() / 2;
             int r = Math.min(centroX, centroY) - (vertices.length() > 10 ? 100 : 60);
-            double angulo = 2 * Math.PI / vertices.length();
+            
+            // Manejo especial para un solo vértice
+            double angulo;
+            if (vertices.length() == 1) {
+                angulo = 0; // No importa el ángulo para un solo vértice
+            } else {
+                angulo = 2 * Math.PI / vertices.length();
+            }
 
             // Posiciones de los vértices
             Point[] posiciones = new Point[vertices.length()];
             for (int i = 0; i < vertices.length(); i++) {
-                int x = (int) (centroX + r * Math.cos(i * angulo));
-                int y = (int) (centroY + r * Math.sin(i * angulo));
+                int x, y;
+                if (vertices.length() == 1) {
+                    // Centrar el único vértice
+                    x = centroX;
+                    y = centroY;
+                } else {
+                    x = (int) (centroX + r * Math.cos(i * angulo));
+                    y = (int) (centroY + r * Math.sin(i * angulo));
+                }
                 posiciones[i] = new Point(x, y);
 
                 JButton btn = botonesVer.getNodeAtIndex(i);
@@ -139,22 +161,28 @@ public class Interfaz extends JFrame {
                 int i = vertices.findIndex(a.origen);
                 int j = vertices.findIndex(a.destino);
 
-                Point p1 = posiciones[i];
-                Point p2 = posiciones[j];
+                if (i != -1 && j != -1) { // Verificar que los vértices existan
+                    Point p1 = posiciones[i];
+                    Point p2 = posiciones[j];
 
-                g.setColor(Color.BLACK);
-                drawArrowLine(g, p1.x, p1.y, p2.x, p2.y, 10, 6);
+                    g.setColor(Color.BLACK);
+                    drawArrowLine(g, p1.x, p1.y, p2.x, p2.y, 10, 6);
 
-                int midX = (p1.x + p2.x) / 2;
-                int midY = (p1.y + p2.y) / 2;
-                g.setColor(Color.RED);
-                g.drawString(String.valueOf(a.peso), midX, midY);
+                    int midX = (p1.x + p2.x) / 2;
+                    int midY = (p1.y + p2.y) / 2;
+                    g.setColor(Color.RED);
+                    g.drawString(String.valueOf(a.peso), midX, midY);
+                }
             }
         }
 
         private void drawArrowLine(Graphics g, int x1, int y1, int x2, int y2, int d, int h) {
             int dx = x2 - x1, dy = y2 - y1;
             double D = Math.sqrt(dx * dx + dy * dy);
+            
+            // Evitar división por cero si los puntos son el mismo
+            if (D == 0) return;
+            
             double xm = D - d, xn = xm, ym = h, yn = -h, x;
             double sin = dy / D, cos = dx / D;
 
