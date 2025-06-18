@@ -12,14 +12,15 @@ public class Interfaz extends JFrame {
     private Controller controller;
     private LinkedList<String> vertices;
     private LinkedList<AristaGrafica> aristas;
-    private LinkedList<JButton> botoenesVer;
+    private LinkedList<JButton> botonesVer;
     private DibujoPanel panel;
 
     public Interfaz(){
 
+        this.controller = new Controller();
         vertices = new LinkedList<String>();
         aristas = new LinkedList<AristaGrafica>();
-        botoenesVer = new LinkedList<JButton>();
+        botonesVer = new LinkedList<JButton>();
 
         setTitle("Editor de Grafo");
         setSize(1200, 1000);
@@ -66,7 +67,7 @@ public class Interfaz extends JFrame {
             JButton btn = new JButton(nombre);
             btn.setBounds(0,0,60,30);
             btn.addActionListener(e -> abrirVentanaVertice(nombre));
-            botoenesVer.insertLast(btn);
+            botonesVer.insertLast(btn);
             panel.add(btn);
             panel.repaint();
         }
@@ -88,12 +89,14 @@ public class Interfaz extends JFrame {
         }
 
         String[] vs = new String[vertices.length()];
-        for(int i = 1; i<vs.length; i++){
+        for(int i = 0; i<vs.length; i++){
             vs[i] = vertices.getNodeAtIndex(i);
         }
         // 94 - 95 -> toArray
         String origen = (String) JOptionPane.showInputDialog(this, "Origen:", "Vertices", JOptionPane.PLAIN_MESSAGE, null, vs, null);
         String destino = (String) JOptionPane.showInputDialog(this, "Destino:", "Vertices", JOptionPane.PLAIN_MESSAGE, null, vs, null);
+
+        if (origen == null || destino == null) return;
 
         int peso = 1;
         try {
@@ -116,7 +119,7 @@ public class Interfaz extends JFrame {
             int radio = 60;
             int centroX = getWidth() / 2;
             int centroY = getHeight() / 2;
-            int r = Math.min(centroX, centroY) - 60;
+            int r = Math.min(centroX, centroY) - (vertices.length() > 10 ? 100 : 60);
             double angulo = 2 * Math.PI / vertices.length();
 
             // Posiciones de los vértices
@@ -126,7 +129,7 @@ public class Interfaz extends JFrame {
                 int y = (int) (centroY + r * Math.sin(i * angulo));
                 posiciones[i] = new Point(x, y);
 
-                JButton btn = botoenesVer.getNodeAtIndex(i);
+                JButton btn = botonesVer.getNodeAtIndex(i);
                 btn.setBounds(x-radio/2, y-radio/2, radio, 30);
             }
 
