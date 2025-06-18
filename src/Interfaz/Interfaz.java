@@ -92,8 +92,8 @@ public class Interfaz extends JFrame {
             vs[i] = vertices.getNodeAtIndex(i);
         }
         // 94 - 95 -> toArray
-        String origen = (String) JOptionPane.showInputDialog(this, "Origen:", "Vertices", JOptionPane.PLAIN_MESSAGE, null, vertices.toArray(), null);
-        String destino = (String) JOptionPane.showInputDialog(this, "Destino:", "Vertices", JOptionPane.PLAIN_MESSAGE, null, vertices.toArray(), null);
+        String origen = (String) JOptionPane.showInputDialog(this, "Origen:", "Vertices", JOptionPane.PLAIN_MESSAGE, null, vs, null);
+        String destino = (String) JOptionPane.showInputDialog(this, "Destino:", "Vertices", JOptionPane.PLAIN_MESSAGE, null, vs, null);
 
         int peso = 1;
         try {
@@ -146,17 +146,6 @@ public class Interfaz extends JFrame {
                 int midY = (p1.y + p2.y) / 2;
                 g.setColor(Color.RED);
                 g.drawString(String.valueOf(a.peso), midX, midY);
-
-            }
-
-            // Dibujar vértices
-            for (int i = 0; i < vertices.length(); i++) {
-                Point p = posiciones[i];
-                g.setColor(Color.YELLOW);
-                g.fillOval(p.x - radio / 2, p.y - radio / 2, radio, radio);
-                g.setColor(Color.BLACK);
-                g.drawOval(p.x - radio / 2, p.y - radio / 2, radio, radio);
-                g.drawString(vertices.get(i), p.x - 10, p.y + 4); // ver metodo
             }
         }
 
