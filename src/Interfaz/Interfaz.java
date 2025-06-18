@@ -83,7 +83,7 @@ public class Interfaz extends JFrame {
         try {
             peso = Integer.parseInt(JOptionPane.showInputDialog(this, "Ingrese el peso de la arista:"));
         } catch (NumberFormatException e) {
-            JOptionPane.showMessageDialog(this, "Peso invalido. Se usara 1.");
+            JOptionPane.showMessageDialog(this, "Peso invalido. Se usara 1");
         }
 
         controller.connectZones(origen, destino, peso);
@@ -97,7 +97,7 @@ public class Interfaz extends JFrame {
         protected void paintComponent(Graphics g) {
             super.paintComponent(g);
 
-            int radio = 30;
+            int radio = 60;
             int centroX = getWidth() / 2;
             int centroY = getHeight() / 2;
             int r = Math.min(centroX, centroY) - 60;
@@ -109,18 +109,22 @@ public class Interfaz extends JFrame {
                 int x = (int) (centroX + r * Math.cos(i * angulo));
                 int y = (int) (centroY + r * Math.sin(i * angulo));
                 posiciones[i] = new Point(x, y);
+
+                JButton btn = botoenesVer.getNodeAtIndex(i);
+                btn.setBounds(x-radio/2, y-radio/2, radio, 30);
             }
 
             // Dibujar aristas
-            for (AristaGrafica a : aristas) {
-                int i = vertices.indexOf(a.origen);
-                int j = vertices.indexOf(a.destino);
+            for (in k = 0, k < aristas.length(); k++) {
+                ArisaGrafica a = aristas.getNodeAtIndex(k);
+                int i = vertices.findIndex(a.origen);
+                int j = vertices.findIndex(a.destino);
 
                 Point p1 = posiciones[i];
                 Point p2 = posiciones[j];
 
                 g.setColor(Color.BLACK);
-                drawArrowLine(g, p1.x, p1.y, p2.x, p2.y, esDirigido ? 10 : 0, 6);
+                drawArrowLine(g, p1.x, p1.y, p2.x, p2.y, 10, 6);
 
                 if (esPonderado) {
                     int midX = (p1.x + p2.x) / 2;
@@ -142,11 +146,6 @@ public class Interfaz extends JFrame {
         }
 
         private void drawArrowLine(Graphics g, int x1, int y1, int x2, int y2, int d, int h) {
-            if (!esDirigido) {
-                g.drawLine(x1, y1, x2, y2);
-                return;
-            }
-
             int dx = x2 - x1, dy = y2 - y1;
             double D = Math.sqrt(dx * dx + dy * dy);
             double xm = D - d, xn = xm, ym = h, yn = -h, x;
@@ -168,4 +167,18 @@ public class Interfaz extends JFrame {
         }
     }
 
+    static class AristaGrafica {
+        String origen, destino;
+        int peso;
+
+        AristaGrafica(String o, String d, int p) {
+            origen = o;
+            destino = d;
+            peso = p;
+        }
+    }
+
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(Interfaz::new);
+    }
 }
