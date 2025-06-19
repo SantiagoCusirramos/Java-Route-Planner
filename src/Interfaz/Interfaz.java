@@ -23,7 +23,7 @@ public class Interfaz extends JFrame {
         botonesVer = new LinkedList<JButton>();
 
         setTitle("Editor de Grafo");
-        setSize(1200, 1000);
+        setSize(1200, 770);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setLayout(new BorderLayout());
 
