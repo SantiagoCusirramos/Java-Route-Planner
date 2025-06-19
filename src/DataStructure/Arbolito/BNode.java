@@ -1,44 +1,39 @@
 package DataStructure.Arbolito;
 
-import java.util.ArrayList;
-
+@SuppressWarnings("unchecked")
 public class BNode<E extends Comparable<E>> {
     public int count;
-    public ArrayList<E> keys;
-    public ArrayList<BNode<E>> childs;
+    public E[] keys;
+    public BNode<E>[] childs;
     public int idNode;
 
     public BNode(int n) {
-        this.keys = new ArrayList<>();
-        this.childs = new ArrayList<BNode<E>>(n + 1);
+        this.keys = (E[]) new Comparable[n];
+        this.childs = (BNode<E>[]) new BNode[n + 1];
         this.count = 0;
         this.idNode = 0;
-
-        for (int i = 0; i < n; i++) {
-            this.keys.add(null);
-            this.childs.add(null);
-        }
     }
 
     public boolean nodeFull(int maxKeys) {
-//        return count == keys.size(); // propuestas
         return count >= maxKeys;
     }
 
     public boolean nodeEmpty() {
-        return count == 0; // propuestas
+        return count == 0;
     }
 
     public boolean searchNode(E data, int[] pos) {
         int i = 0;
 
-        while (i < count && data.compareTo(keys.get(i)) > 0) {
+        // Cambiar keys.get(i) por keys[i]
+        while (i < count && data.compareTo(keys[i]) > 0) {
             i++;
         }
 
         pos[0] = i;
 
-        return (i < count && data.compareTo(keys.get(i)) == 0);
+        // Cambiar keys.get(i) por keys[i]
+        return (i < count && data.compareTo(keys[i]) == 0);
     }
 
 }

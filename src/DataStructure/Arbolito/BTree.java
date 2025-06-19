@@ -31,9 +31,9 @@ public class BTree<E extends Comparable<E>> {
         if (up) {
             pnew = new BNode<E>(this.order); // nodo padre especial -> root
             pnew.count = 1;
-            pnew.keys.set(0, mediana);
-            pnew.childs.set(0, this.root);
-            pnew.childs.set(1, nDes);
+            pnew.keys[0] = mediana;
+            pnew.childs[0] = this.root;
+            pnew.childs[1] = nDes;
             this.root = pnew;
         }
     }
@@ -56,7 +56,7 @@ public class BTree<E extends Comparable<E>> {
                 return null;
             }
 
-            mediana = push(current.childs.get(pos[0]), cl);
+            mediana = push(current.childs[pos[0]], cl);
 
             if (up) {
                 if (current.nodeFull(this.order - 1)) {
@@ -75,14 +75,12 @@ public class BTree<E extends Comparable<E>> {
         int i;
 
         for (i = current.count - 1; i >= k; i--) {
-
-            current.keys.set(i + 1, current.keys.get(i));
-            current.childs.set(i + 2, current.childs.get(i + 1));
+            current.keys[i + 1] = current.keys[i];
+            current.childs[i + 2] = current.childs[i + 1];
         }
 
-
-        current.keys.set(k, clave);
-        current.childs.set(k + 1, rd);
+        current.keys[k] = clave;
+        current.childs[k + 1] = rd;
         current.count++;
     }
 
@@ -96,8 +94,8 @@ public class BTree<E extends Comparable<E>> {
 
         //  claves e hijos - mover nodo
         for (i = posMdna; i < this.order - 1; i++) {  // va de la mitad hacia adelante
-            nDes.keys.set(i - posMdna, current.keys.get(i));
-            nDes.childs.set(i - posMdna + 1, current.childs.get(i + 1));
+            nDes.keys[i - posMdna] = current.keys[i];
+            nDes.childs[i - posMdna + 1] = current.childs[i + 1];
         }
 
         nDes.count = (this.order - 1) - posMdna;
@@ -111,8 +109,8 @@ public class BTree<E extends Comparable<E>> {
         }
 
         // mediana q sube p
-        E median = current.keys.get(current.count - 1);
-        nDes.childs.set(0, current.childs.get(current.count));
+        E median = current.keys[current.count - 1];
+        nDes.childs[0] = current.childs[current.count];
         current.count--;
 
         return median;
@@ -135,8 +133,8 @@ public class BTree<E extends Comparable<E>> {
         }
 
         // comprobamos si - la pos es valida / existe un hijo en esa pos
-        if (pos[0] < current.childs.size() && current.childs.get(pos[0]) != null) {
-            return searchRecursive(current.childs.get(pos[0]), data);
+        if (pos[0] < current.childs.length && current.childs[pos[0]] != null) {
+            return searchRecursive(current.childs[pos[0]], data);
         }
         return false;
     }
@@ -146,7 +144,7 @@ public class BTree<E extends Comparable<E>> {
         down = false;
         delete(root, cl);
         if (root != null && root.count == 0) {
-            root = root.childs.get(0);
+            root = root.childs[0];
         }
     }
 
@@ -159,49 +157,47 @@ public class BTree<E extends Comparable<E>> {
         boolean found = node.searchNode(key, pos);
 
         if (found) {
-            if (node.childs.get(pos[0]) == null) { // hijo izquiero, tiene o no?
+            if (node.childs[pos[0]] == null) { // hijo izquiero, tiene o no?
                 removeKey(node, pos[0]); // tiene entra
                 return true;
             } else { // tiene izq
                 E pred = getPredecessor(node, pos[0]);
-                node.keys.set(pos[0], pred);
-                return delete(node.childs.get(pos[0]), pred);
+                node.keys[pos[0]] = pred;
+                return delete(node.childs[pos[0]], pred);
             }
         } else {
-            if (node.childs.get(pos[0]) == null) {
+            if (node.childs[pos[0]] == null) {
                 return false;
             } else {
-                boolean isDeleted = delete(node.childs.get(pos[0]), key);
-                if (node.childs.get(pos[0]).count < (order - 1) / 2) {
+                boolean isDeleted = delete(node.childs[pos[0]], key);
+                if (node.childs[pos[0]].count < (order - 1) / 2) {
                     fix(node, pos[0]);
                 }
                 return isDeleted;
             }
         }
-
-
     }
 
     private void removeKey(BNode<E> node, int index) {
         for (int i = index; i < node.count - 1; i++) {
-            node.keys.set(i, node.keys.get(i + 1));
+            node.keys[i] = node.keys[i + 1];
         }
-        node.keys.set(node.count - 1, null);
+        node.keys[node.count - 1] = null;
         node.count--;
     }
 
     private E getPredecessor(BNode<E> node, int index) {
-        BNode<E> current = node.childs.get(index);
-        while (current.childs.get(index + 1) != null) {
-            current = current.childs.get(index + 1);
+        BNode<E> current = node.childs[index];
+        while (current.childs[index + 1] != null) {
+            current = current.childs[index + 1];
         }
-        return current.keys.get(current.count - 1);
+        return current.keys[current.count - 1];
     }
 
     private void fix(BNode<E> parent, int index) {
-        if (index > 0 && parent.childs.get(index - 1).count > (order - 1) / 2) {
+        if (index > 0 && parent.childs[index - 1].count > (order - 1) / 2) {
             borrowFromLeft(parent, index);
-        } else if (index < parent.count && parent.childs.get(index + 1).count > (order - 1) / 2) {
+        } else if (index < parent.count && parent.childs[index + 1].count > (order - 1) / 2) {
             borrowFromRight(parent, index);
         } else {
             if (index > 0) {
@@ -213,55 +209,54 @@ public class BTree<E extends Comparable<E>> {
     }
 
     private void merge(BNode<E> parent, int index) {
-        BNode<E> left = parent.childs.get(index);
-        BNode<E> right = parent.childs.get(index + 1);
+        BNode<E> left = parent.childs[index];
+        BNode<E> right = parent.childs[index + 1];
 
         // Mover clave del padre al hijo izquierdo
-        left.keys.set(left.count, parent.keys.get(index));
+        left.keys[left.count] = parent.keys[index];
         left.count++;
 
         // Mover claves e hijos del hijo derecho al izquierdo
         for (int i = 0; i < right.count; i++) {
-            left.keys.set(left.count + i, right.keys.get(i));
+            left.keys[left.count + i] = right.keys[i];
         }
         for (int i = 0; i <= right.count; i++) {
-            left.childs.set(left.count + i, right.childs.get(i));
+            left.childs[left.count + i] = right.childs[i];
         }
         left.count += right.count;
 
         // Eliminar la clave del padre y el hijo derecho
         for (int i = index; i < parent.count - 1; i++) {
-            parent.keys.set(i, parent.keys.get(i + 1));
-            parent.childs.set(i + 1, parent.childs.get(i + 2));
+            parent.keys[i] = parent.keys[i + 1];
+            parent.childs[i + 1] = parent.childs[i + 2];
         }
 
-        parent.keys.set(parent.count - 1, null);
-        parent.childs.set(parent.count, null);
+        parent.keys[parent.count - 1] = null;
+        parent.childs[parent.count] = null;
         parent.count--;
     }
 
     private void borrowFromLeft(BNode<E> parent, int index) {
-        BNode<E> left = parent.childs.get(index - 1);
-        BNode<E> current = parent.childs.get(index);
+        BNode<E> left = parent.childs[index - 1];
+        BNode<E> current = parent.childs[index];
 
         // Desplazar claves e hijos del niño a la derecha
         for (int i = current.count; i >= 0; i--) {
-            current.keys.set(i + 1, current.keys.get(i));
+            current.keys[i + 1] = current.keys[i];
         }
 
         // Mover clave del padre al niño
-        current.keys.set(0, parent.keys.get(index - 1));
-        parent.keys.set(index - 1, left.keys.get(left.count - 1));
-        left.keys.set(left.count - 1, null);
+        current.keys[0] = parent.keys[index - 1];
+        parent.keys[index - 1] = left.keys[left.count - 1];
+        left.keys[left.count - 1] = null;
 
         // Mover hijo del hermano al niño
-        if (left.childs.get(left.count) != null) {
-
+        if (left.childs[left.count] != null) {
             for (int i = current.count; i >= 0; i--) {
-                current.childs.set(i + 1, current.childs.get(i));
+                current.childs[i + 1] = current.childs[i];
             }
-            current.childs.set(0, left.childs.get(left.count));
-            left.childs.set(left.count, null);
+            current.childs[0] = left.childs[left.count];
+            left.childs[left.count] = null;
         }
 
         current.count++;
@@ -269,28 +264,28 @@ public class BTree<E extends Comparable<E>> {
     }
 
     private void borrowFromRight(BNode<E> parent, int index) {
-        BNode<E> right = parent.childs.get(index + 1);
-        BNode<E> current = parent.childs.get(index);
+        BNode<E> right = parent.childs[index + 1];
+        BNode<E> current = parent.childs[index];
 
         // Insertar clave del padre al final de current
-        current.keys.set(current.count, parent.keys.get(index));
+        current.keys[current.count] = parent.keys[index];
 
         // Reemplazar clave del padre con la primera del hermano derecho
-        parent.keys.set(index, right.keys.get(0));
+        parent.keys[index] = right.keys[0];
 
         // Desplazar las claves del hermano derecho una posición a la izquierda
         for (int i = 1; i < right.count; i++) {
-            right.keys.set(i - 1, right.keys.get(i));
+            right.keys[i - 1] = right.keys[i];
         }
-        right.keys.set(right.count - 1, null);
+        right.keys[right.count - 1] = null;
 
         // Si tiene hijos, mover el primer hijo del hermano derecho al final de current
-        if (right.childs.get(0) != null) {
-            current.childs.set(current.count + 1, right.childs.get(0));
+        if (right.childs[0] != null) {
+            current.childs[current.count + 1] = right.childs[0];
             for (int i = 1; i <= right.count; i++) {
-                right.childs.set(i - 1, right.childs.get(i));
+                right.childs[i - 1] = right.childs[i];
             }
-            right.childs.set(right.count, null);
+            right.childs[right.count] = null;
         }
 
         current.count++;
@@ -313,7 +308,7 @@ public class BTree<E extends Comparable<E>> {
             // Mostrar el contenido del nodo actual
             s += "[";
             for (int i = 0; i < current.count; i++) {
-                s += current.keys.get(i);
+                s += current.keys[i];
                 if (i < current.count - 1) {
                     s += ", ";
                 }
@@ -323,7 +318,7 @@ public class BTree<E extends Comparable<E>> {
             // Si no es una hoja, recorrer los hijos
             boolean isLeaf = true;
             for (int i = 0; i <= current.count; i++) {
-                if (current.childs.get(i) != null) {
+                if (current.childs[i] != null) {
                     isLeaf = false;
                     break;
                 }
@@ -332,9 +327,9 @@ public class BTree<E extends Comparable<E>> {
             if (!isLeaf) {
                 s += "\n";
                 for (int i = 0; i <= current.count; i++) {
-                    if (current.childs.get(i) != null) {
+                    if (current.childs[i] != null) {
                         // Agregar indentación para mostrar la estructura jerárquica
-                        String childContent = writeTree(current.childs.get(i));
+                        String childContent = writeTree(current.childs[i]);
                         String[] lines = childContent.split("\n");
                         for (String line : lines) {
                             s += "  " + line + "\n";
@@ -349,7 +344,6 @@ public class BTree<E extends Comparable<E>> {
         }
         return s;
     }
-
 }
 
 ////    ---------------------------Borrow------------------------------------
