@@ -59,8 +59,32 @@ public class Interfaz extends JFrame {
             }
         });
 
+        JButton btnEliminarVertice = new JButton("Eliminar vertice");
+        btnEliminarVertice.addActionListener(e -> {
+            try {
+                eliminiarVertice();
+            }catch (ItemNotFound ex){
+                throw new RuntimeException(ex);
+            }
+        });
+
+        JButton btnEliminarArista = new JButton("Eliminar arista");
+        btnEliminarArista.addActionListener(e -> {
+            try {
+                eliminarArista();
+            }catch (ItemNotFound ex){
+                throw new RuntimeException(ex);
+            }
+        });
+
+        JButton btnBuscarVertice = new JButton("Buscar vertice");
+        btnBuscarVertice.addActionListener(e -> buscarVertice());
+
         botones.add(btnAgregarVertice);
         botones.add(btnAgregarArista);
+        botones.add(btnEliminarVertice);
+        botones.add(btnEliminarArista);
+        botones.add(btnBuscarVertice);
         add(botones, BorderLayout.SOUTH);
 
         setVisible(true);
@@ -82,10 +106,10 @@ public class Interfaz extends JFrame {
     }
 
     private void abrirVentanaVertice(String nombre) {
-        JFrame ventana = new JFrame("Vértice: " + nombre);
+        JFrame ventana = new JFrame("vertice: " + nombre);
         ventana.setSize(300, 150);
         ventana.setLocationRelativeTo(this);
-        ventana.add(new JLabel("Este es el vértice: " + nombre, SwingConstants.CENTER));
+        ventana.add(new JLabel("Este es el vertice: " + nombre, SwingConstants.CENTER));
         ventana.setVisible(true);
     }
 
@@ -119,17 +143,93 @@ public class Interfaz extends JFrame {
 
     }
 
+    public  void eliminiarVertice() throws ItemNotFound {
+        String nombre = JOptionPane.showInputDialog(this, "Ingrese nombre del vertice:");
+        if (nombre == null || nombre.isEmpty()) return;
+
+        if (!vertices.search(nombre)) {
+            JOptionPane.showMessageDialog(this, "Vertice no encontrado.");
+            return;
+        }
+
+        // Eliminar del controlador
+        controller.removeZone(nombre);
+        int index = vertices.findIndex(nombre);
+
+        vertices.removeNode(nombre);
+        botonesVer.removeAtIndex(index);
+
+        // Eliminar las aristas relacionadas
+        for (int i = 0; i < aristas.length(); ) {
+            AristaGrafica a = aristas.getNodeAtIndex(i);
+            if (a.origen.equals(nombre) || a.destino.equals(nombre)) {
+                aristas.removeAtIndex(i); // No incrementar i porque la lista se mueve
+            } else {
+                i++;
+            }
+        }
+
+        panel.removeAll(); // Borra todos los botones de la vista
+        for (int i = 0; i < botonesVer.length(); i++) {
+            panel.add(botonesVer.getNodeAtIndex(i)); // Agrega los botones actualizados
+        }
+
+        panel.repaint();
+    }
+
+    private void eliminarArista() throws ItemNotFound {
+        if (aristas.length() == 0) {
+            JOptionPane.showMessageDialog(this, "No hay aristas para eliminar.");
+            return;
+        }
+
+        String[] vs = new String[vertices.length()];
+        for (int i = 0; i < vs.length; i++) {
+            vs[i] = vertices.getNodeAtIndex(i);
+        }
+
+        String origen = (String) JOptionPane.showInputDialog(this, "Origen:", "Eliminar arista", JOptionPane.PLAIN_MESSAGE, null, vs, null);
+        String destino = (String) JOptionPane.showInputDialog(this, "Destino:", "Eliminar arista", JOptionPane.PLAIN_MESSAGE, null, vs, null);
+
+        if (origen == null || destino == null) return;
+
+        controller.disconnectZones(origen, destino);
+
+        for (int i = 0; i < aristas.length(); i++) {
+            AristaGrafica a = aristas.getNodeAtIndex(i);
+            if (a.origen.equals(origen) && a.destino.equals(destino)) {
+                aristas.removeAtIndex(i);
+                break;
+            }
+        }
+
+        panel.repaint();
+    }
+
+    private void buscarVertice() {
+        String nombre = JOptionPane.showInputDialog(this, "Nombre del vertice a buscar:");
+        if (nombre == null || nombre.isEmpty()) return;
+
+        if (vertices.search(nombre)) {
+            JOptionPane.showMessageDialog(this, "El vertice '" + nombre + "' SÍ existe.");
+        } else {
+            JOptionPane.showMessageDialog(this, "El vertice '" + nombre + "' NO existe.");
+        }
+    }
+
+
+
     class DibujoPanel extends JPanel {
         @Override
         protected void paintComponent(Graphics g) {
             super.paintComponent(g);
 
-            // Verificar si hay vértices para dibujar
+            // Verificar si hay vertices para dibujar
             if (vertices.length() == 0) {
-                // Opcional: dibujar un mensaje cuando no hay vértices
+                // Opcional: dibujar un mensaje cuando no hay vertices
                 g.setColor(Color.GRAY);
                 g.setFont(new Font("Arial", Font.BOLD, 16));
-                String mensaje = "Agrega vértices para comenzar";
+                String mensaje = "Agrega vertices para comenzar";
                 FontMetrics fm = g.getFontMetrics();
                 int x = (getWidth() - fm.stringWidth(mensaje)) / 2;
                 int y = getHeight() / 2;
@@ -142,27 +242,27 @@ public class Interfaz extends JFrame {
             int centroX = getWidth() / 2;
             int centroY = getHeight() / 2;
             
-            // Radio del círculo que contiene los vértices (adaptativo al tamaño de pantalla)
+            // Radio del círculo que contiene los vertices (adaptativo al tamaño de pantalla)
             int margen = radioBoton + 20;
             int r = Math.min(centroX - margen, centroY - margen);
             
             // Asegurar un radio mínimo
             r = Math.max(r, 100);
             
-            // Manejo especial para un solo vértice
+            // Manejo especial para un solo vertice
             double angulo;
             if (vertices.length() == 1) {
-                angulo = 0; // No importa el ángulo para un solo vértice
+                angulo = 0; // No importa el ángulo para un solo vertice
             } else {
                 angulo = 2 * Math.PI / vertices.length();
             }
 
-            // Posiciones de los vértices
+            // Posiciones de los vertices
             Point[] posiciones = new Point[vertices.length()];
             for (int i = 0; i < vertices.length(); i++) {
                 int x, y;
                 if (vertices.length() == 1) {
-                    // Centrar el único vértice
+                    // Centrar el único vertice
                     x = centroX;
                     y = centroY;
                 } else {
@@ -191,7 +291,7 @@ public class Interfaz extends JFrame {
                 int i = vertices.findIndex(a.origen);
                 int j = vertices.findIndex(a.destino);
 
-                if (i != -1 && j != -1) { // Verificar que los vértices existan
+                if (i != -1 && j != -1) { // Verificar que los vertices existan
                     Point p1 = posiciones[i];
                     Point p2 = posiciones[j];
 

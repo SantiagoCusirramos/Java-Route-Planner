@@ -93,6 +93,31 @@ public class LinkedList<T> {
         return false;
     }
 
+    public boolean removeAtIndex(int index) {
+        if (index < 0 || index >= countNodes || head == null) {
+            return false;
+        }
+
+        if (index == 0) {
+            head = head.getNext();
+            countNodes--;
+            return true;
+        }
+
+        Node<T> current = head;
+        for (int i = 0; i < index - 1; i++) {
+            current = current.getNext();
+        }
+
+        if (current.getNext() != null) {
+            current.setNext(current.getNext().getNext());
+            countNodes--;
+            return true;
+        }
+
+        return false;
+    }
+
     public void insertFirst(T valor) {
         Node<T> newNode = new Node<T>(valor);
         if (head == null) {
