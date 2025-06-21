@@ -63,33 +63,61 @@ public class Controller {
 
 		return true;
 	}
-
-
-	//se elimina una zona del sistema
 	public boolean removeZone(String zoneName) throws ItemNotFound {
-		if (zoneName == null || !urbanGraph.searchVertex(zoneName)) {
-			throw new ItemNotFound("La zona '" + zoneName + "' no existe en el sistema");
+		if (zoneName == null || zoneName.isEmpty()) {
+			throw new IllegalArgumentException("El nombre de la zona no puede estar vacío.");
 		}
 
-		boolean removed = urbanGraph.removeVertex(zoneName);
-		if (removed) {
-			zones.removeNode(zoneName);
+		// Verificar si existe en el grafo
+		if (!urbanGraph.searchVertex(zoneName)) {
+			throw new ItemNotFound("La zona '" + zoneName + "' no existe en el grafo urbano.");
+		}
+
+		// Eliminar del grafo
+		boolean removedFromGraph = urbanGraph.removeVertex(zoneName);
+		boolean removedFromList = false;
+
+		// Buscar índice de la zona en la lista y eliminarla
+		for (int i = 0; i < zones.length(); i++) {
+			Zona zona = zones.getNodeAtIndex(i);
+			if (zona.getNombre().equalsIgnoreCase(zoneName)) {
+				removedFromList = zones.removeAtIndex(i);
+				break;
+			}
+		}
+
+		if (removedFromGraph && removedFromList) {
 			operationStack.push("REMOVE_ZONE:" + zoneName);
+			return true;
+		} else {
+			throw new ItemNotFound("Error al eliminar la zona '" + zoneName + "' del sistema.");
 		}
-
-		return removed;
 	}
 
 
-	//se verifica si una zona existe en el sistema
+
+
+
+	/**
+	 * Verifica si una zona existe en el sistema.
+	 *
+	 * @param zoneName El nombre de la zona a verificar.
+	 * @return true si la zona existe en el grafo urbano; false en caso contrario.
+	 */
 	public boolean zoneExists(String zoneName) {
+		if (zoneName == null || zoneName.isEmpty()) return false;
 		return urbanGraph.searchVertex(zoneName);
 	}
 
-
+	/**
+	 * Retorna una lista de todos los nombres de zonas (vértices) presentes en el grafo.
+	 *
+	 * @return LinkedList de nombres de zonas.
+	 */
 	public LinkedList<String> getAllZones() {
-		return urbanGraph.getVertices();
+		return urbanGraph.getVertices(); // Asegúrate que este método retorna una lista de Strings
 	}
+
 
 	// ==================== GESTIÓN DE RUTAS ====================
 
