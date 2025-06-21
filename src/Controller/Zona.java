@@ -18,4 +18,5 @@ public class Zona {
     public BTree<Punto> getArbolDistrito() {
         return arbolDistrito;
     }
+
 }
