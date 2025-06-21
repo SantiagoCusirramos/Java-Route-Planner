@@ -535,6 +535,25 @@ public class Controller {
 					urbanGraph.insertEdge(disconnection[0], disconnection[1], weight);
 					break;
 				}
+				case "ADD_DISTRICT": {
+					String zone = parts[1];
+					String district = parts[2];
+					Zona z = buscarZona(zone);
+					if (z != null) {
+						z.getArbolDistrito().remove(new Punto(district));
+					}
+					break;
+				}
+				case "REMOVE_DISTRICT": {
+					String zone = parts[1];
+					String district = parts[2];
+					Zona z = buscarZona(zone);
+					if (z != null) {
+						z.getArbolDistrito().insert(new Punto(district));
+					}
+					break;
+				}
+
 				default:
 					// Operación no reversible (por ejemplo, consultas)
 					return true;
