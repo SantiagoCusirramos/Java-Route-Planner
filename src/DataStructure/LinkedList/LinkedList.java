@@ -118,6 +118,17 @@ public class LinkedList<T> {
         return false;
     }
 
+     public T removeFirst() {
+        if (head == null) {
+            return null;
+        }
+        
+        T data = head.getData();
+        head = head.getNext();
+        countNodes--;
+        return data;
+    }
+    
     public void insertFirst(T valor) {
         Node<T> newNode = new Node<T>(valor);
         if (head == null) {
