@@ -775,6 +775,15 @@ public class Controller {
 		operationStack.push("REMOVE_DISTRICT:" + zoneName + ":" + districtName);
 		return true;
 	}
+	public boolean searchDistrictInZone(String zoneName, String districtName) throws ItemNotFound {
+		Zona zona = buscarZona(zoneName);
+		if (zona == null) {
+			throw new ItemNotFound("La zona '" + zoneName + "' no existe.");
+		}
+
+		boolean b = zona.getArbolDistrito().search(new Punto(districtName)) != null;
+		return b;
+	}
 
 
 
