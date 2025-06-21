@@ -1,5 +1,6 @@
 package Controller;
 
+import DataStructure.Arbolito.BTree;
 import AdjacencyLists.GraphLink.GraphLink;
 import DataStructure.LinkedList.LinkedList;
 import DataStructure.Queue.LinkedQueue;
@@ -12,9 +13,17 @@ import Exceptions.ItemDuplicated;
 
 public class Controller {
 	private GraphLink<String> urbanGraph;
-	private LinkedList<String> zones;
+	private LinkedList<Zona> zones;
 	private LinkedQueue<String> routeHistory;
 	private LinkedStack<String> operationStack;
+
+
+	// ===================== GESTIÓN DE ZONAS COMO DISTRITOS =====================
+
+
+	private final int ordenArbolDistrito = 4; // orden del árbol B para cada distrito
+
+	// ===========================================================================
 
 	public Controller() {
 		this.urbanGraph = new GraphLink<>(false, true); // No dirigido, con pesos
@@ -33,7 +42,7 @@ public class Controller {
 
 	// ==================== GESTIÓN DE ZONAS ====================
 
-	//se añade una nueva zona al sistema
+	// Se añade una nueva zona al sistema
 	public boolean addZone(String zoneName) throws ItemDuplicated {
 		if (zoneName == null || zoneName.trim().isEmpty()) {
 			return false;
@@ -44,13 +53,17 @@ public class Controller {
 		}
 
 		urbanGraph.insertVertex(zoneName);
-		zones.insertLast(zoneName);
+
+		// Crear zona con orden del árbol B (ajusta según necesidad, por ejemplo, 4)
+		Zona nuevaZona = new Zona(zoneName, 4);
+		zones.insertLast(nuevaZona); // <-- ahora guarda la Zona, no solo el nombre
 
 		// Registrar operación
 		operationStack.push("ADD_ZONE:" + zoneName);
 
 		return true;
 	}
+
 
 	//se elimina una zona del sistema
 	public boolean removeZone(String zoneName) throws ItemNotFound {
@@ -336,7 +349,7 @@ public class Controller {
 
 
 	//encontrar todas las rutas posibles entre 2 zonas
-	public LinkedList<LinkedList<String>> findAllPaths(String origin, String destination, int maxPaths) 
+	public LinkedList<LinkedList<String>> findAllPaths(String origin, String destination, int maxPaths)
 			throws ItemNotFound, ExceptionIsEmpty {
 		if (!urbanGraph.searchVertex(origin)) {
 			throw new ItemNotFound("La zona origen '" + origin + "' no existe");
@@ -353,7 +366,7 @@ public class Controller {
 
 
 	//compara diferentes algoritmos de busqueda en un par origen-destino
-	public RouteComparisonResult compareRoutingAlgorithms(String origin, String destination) 
+	public RouteComparisonResult compareRoutingAlgorithms(String origin, String destination)
 			throws ItemNotFound, ExceptionIsEmpty {
 		if (!urbanGraph.searchVertex(origin) || !urbanGraph.searchVertex(destination)) {
 			throw new ItemNotFound("Una o ambas zonas no existen");
@@ -641,4 +654,11 @@ public class Controller {
 					'}';
 		}
 	}
+
+
+
+	// ==================== GESTIÓN DE DISTRITOS ====================
+
+
+
 }
