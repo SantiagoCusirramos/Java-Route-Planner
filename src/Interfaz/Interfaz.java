@@ -92,7 +92,7 @@ public class Interfaz extends JFrame {
             // Cargar imagen de recurso
             ImageIcon icono;
             try {
-                icono = new ImageIcon(getClass().getResource("/Interfaz/img/edificio.png"));
+                icono = new ImageIcon(getClass().getResource("/Interfaz/img/edificios.png"));
             } catch (Exception e) {
                 JOptionPane.showMessageDialog(this, "No se pudo cargar la imagen del vértice.");
                 return;
@@ -265,25 +265,38 @@ public class Interfaz extends JFrame {
                 Point p1=pts[vertices.findIndex(a.origen)];
                 Point p2=pts[vertices.findIndex(a.destino)];
                 double dx=p2.x-p1.x,dy=p2.y-p1.y;
-                double len=Math.hypot(dx,dy);
-                if(len==0)continue;
-                double t=30/len;
+                double len=Math.hypot(dx,dy);if(len==0)continue;
+
+                // Mientras el numero sea menor la fecha se alarga
+                double t=35/len;
                 int x1=(int)(p1.x+dx*t),y1=(int)(p1.y+dy*t);
                 int x2=(int)(p2.x-dx*t),y2=(int)(p2.y-dy*t);
+
                 g2.setColor(Color.BLACK);
+
+                // grosos del la linea
                 g2.setStroke(new BasicStroke(2));
                 drawArrowLine(g2,x1,y1,x2,y2,12,8);
+
+                // calcularse la posicion del peso
                 double ux=dx/len,uy=dy/len;
                 double nx=-uy,ny=ux;
-                int px=(int)(p1.x+ux*50+nx*10);
-                int py=(int)(p1.y+uy*50+ny*10);
+
+                // → "50" es cuántos píxeles avanzas desde el origen
+                // → "10" es el desplazamiento perpendicular
+                int px=(int)(p1.x+ux*70+nx*10);
+                int py=(int)(p1.y+uy*70+ny*10);
                 String s=String.valueOf(a.peso);
                 FontMetrics fm2=g2.getFontMetrics();
                 int w=fm2.stringWidth(s),h=fm2.getHeight();
-                g2.setColor(Color.WHITE);
+
+                // Modificacion del subrayado del peso
+                g2.setColor(Color.YELLOW);
                 g2.fillRect(px-w/2-2,py-h/2-2,w+4,h);
+
+                // Tamaño del tipo de fuente del peso
                 g2.setColor(Color.RED);
-                g2.setFont(new Font("Arial",Font.BOLD,Math.max(10,radio/6)));
+                g2.setFont(new Font("Arial",Font.BOLD,Math.max(14,radio/6)));
                 g2.drawString(s,px-w/2,py+fm2.getAscent()/2);
             }
         }
