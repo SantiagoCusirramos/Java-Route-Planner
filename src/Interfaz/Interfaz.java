@@ -295,35 +295,26 @@ public class Interfaz extends JFrame {
                     g2d.setStroke(new BasicStroke(2));
                     drawArrowLine(g2d, recorteX1, recorteY1, recorteX2, recorteY2, 12, 8);
 
-                    // Detectar si existe la arista inversa
-                    boolean esBidireccional = false;
-                    for (int l = 0; l < aristas.length(); l++) {
-                        AristaGrafica otra = aristas.getNodeAtIndex(l);
-                        if (otra.origen.equals(a.destino) && otra.destino.equals(a.origen)) {
-                            esBidireccional = true;
-                            break;
-                        }
-                    }
+                    // Calcular posición del peso: 50 hacia destino + 10 perpendicular
+                    double ux = dx / len; // vector dirección
+                    double uy = dy / len;
 
-                    // Calcular punto medio con desplazamiento si es bidireccional
-                    double offset = esBidireccional ? 15 : 0;
-                    double px = -dy / len * offset;
-                    double py = dx / len * offset;
+                    double nx = -uy; // vector perpendicular
+                    double ny = ux;
 
-                    int midX = (int) ((p1.x + p2.x) / 2 + px);
-                    int midY = (int) ((p1.y + p2.y) / 2 + py);
+                    int pesoX = (int) (p1.x + ux * 50 + nx * 10);
+                    int pesoY = (int) (p1.y + uy * 50 + ny * 10);
 
-                    // Dibujar peso
                     String pesoStr = String.valueOf(a.peso);
                     FontMetrics fm = g2d.getFontMetrics();
                     int pesoWidth = fm.stringWidth(pesoStr);
                     int pesoHeight = fm.getHeight();
 
                     g2d.setColor(Color.WHITE);
-                    g2d.fillRect(midX - pesoWidth / 2 - 2, midY - pesoHeight / 2 - 2, pesoWidth + 4, pesoHeight);
+                    g2d.fillRect(pesoX - pesoWidth / 2 - 2, pesoY - pesoHeight / 2 - 2, pesoWidth + 4, pesoHeight);
                     g2d.setColor(Color.RED);
                     g2d.setFont(new Font("Arial", Font.BOLD, Math.max(10, radioBoton / 6)));
-                    g2d.drawString(pesoStr, midX - pesoWidth / 2, midY + fm.getAscent() / 2);
+                    g2d.drawString(pesoStr, pesoX - pesoWidth / 2, pesoY + fm.getAscent() / 2);
                 }
             }
         }
