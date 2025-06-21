@@ -178,6 +178,7 @@ public class Controller {
 
 		return urbanGraph.searchEdge(zone1, zone2, -1); // -1: ignora peso
 	}
+2
 
 	// ==================== BÚSQUEDA DE RUTAS AVANZADA ====================
 
@@ -779,7 +780,7 @@ public class Controller {
 	public boolean removeDistrictFromZone(String zoneName, String districtName) throws ItemNotFound {
 		Zona zona = buscarZona(zoneName);
 		if (zona == null) {
-			throw new ItemNotFound("La zona '" + zoneName + "' no existe.");
+			throw new ItemNotFound("La zona '" + zoneName + "' no exiasdadste.");
 		}
 
 		BTree<Punto> arbol = zona.getArbolDistrito();
@@ -812,7 +813,23 @@ public class Controller {
 		System.out.println(zona.getArbolDistrito().toString()); // Asume toString ordenado
 	}
 
+	//BUSQUEDAS
+	public boolean connectPointsInZone(String zoneName, String pointA, String pointB, int peso) throws ItemNotFound {
+		Zona zona = buscarZona(zoneName);
+		if (zona == null) throw new ItemNotFound("Zona '" + zoneName + "' no encontrada.");
 
+		BTree<Punto> arbol = zona.getArbolDistrito();
+		Punto origen = arbol.search(new Punto(pointA));
+		Punto destino = arbol.search(new Punto(pointB));
+
+		if (origen == null || destino == null) {
+			throw new ItemNotFound("Uno o ambos puntos no existen en la zona.");
+		}
+
+		origen.agregarConexion(destino, peso);
+		operationStack.push("CONNECT_POINTS:" + zoneName + ":" + pointA + "->" + pointB + ":" + peso);
+		return true;
+	}
 
 
 
