@@ -220,13 +220,13 @@ public class Interfaz extends JFrame {
 
 
     class DibujoPanel extends JPanel {
+
         @Override
         protected void paintComponent(Graphics g) {
             super.paintComponent(g);
 
             // Verificar si hay vertices para dibujar
             if (vertices.length() == 0) {
-                // Opcional: dibujar un mensaje cuando no hay vertices
                 g.setColor(Color.GRAY);
                 g.setFont(new Font("Arial", Font.BOLD, 16));
                 String mensaje = "Agrega vertices para comenzar";
@@ -237,32 +237,19 @@ public class Interfaz extends JFrame {
                 return;
             }
 
-            // Calcular dimensiones dinámicamente
-            int radioBoton = Math.max(40, Math.min(80, getWidth() / 20)); // Radio adaptativo
+            int radioBoton = Math.max(40, Math.min(80, getWidth() / 20));
             int centroX = getWidth() / 2;
             int centroY = getHeight() / 2;
-            
-            // Radio del círculo que contiene los vertices (adaptativo al tamaño de pantalla)
             int margen = radioBoton + 20;
             int r = Math.min(centroX - margen, centroY - margen);
-            
-            // Asegurar un radio mínimo
             r = Math.max(r, 100);
-            
-            // Manejo especial para un solo vertice
-            double angulo;
-            if (vertices.length() == 1) {
-                angulo = 0; // No importa el ángulo para un solo vertice
-            } else {
-                angulo = 2 * Math.PI / vertices.length();
-            }
 
-            // Posiciones de los vertices
+            double angulo = (vertices.length() == 1) ? 0 : 2 * Math.PI / vertices.length();
+
             Point[] posiciones = new Point[vertices.length()];
             for (int i = 0; i < vertices.length(); i++) {
                 int x, y;
                 if (vertices.length() == 1) {
-                    // Centrar el único vertice
                     x = centroX;
                     y = centroY;
                 } else {
@@ -271,49 +258,72 @@ public class Interfaz extends JFrame {
                 }
                 posiciones[i] = new Point(x, y);
 
-                // Reposicionar botón con tamaño adaptativo
                 JButton btn = botonesVer.getNodeAtIndex(i);
                 int anchoBoton = Math.max(60, radioBoton + 10);
                 int altoBoton = Math.max(25, radioBoton / 2);
-                btn.setBounds(x - anchoBoton/2, y - altoBoton/2, anchoBoton, altoBoton);
-                
-                // Ajustar tamaño de fuente del botón
+                btn.setBounds(x - anchoBoton / 2, y - altoBoton / 2, anchoBoton, altoBoton);
+
                 int fontSize = Math.max(8, Math.min(14, radioBoton / 5));
                 btn.setFont(new Font("Arial", Font.BOLD, fontSize));
             }
 
-            // Dibujar aristas
             Graphics2D g2d = (Graphics2D) g;
             g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-            
+
             for (int k = 0; k < aristas.length(); k++) {
                 AristaGrafica a = aristas.getNodeAtIndex(k);
                 int i = vertices.findIndex(a.origen);
                 int j = vertices.findIndex(a.destino);
 
-                if (i != -1 && j != -1) { // Verificar que los vertices existan
+                if (i != -1 && j != -1) {
                     Point p1 = posiciones[i];
                     Point p2 = posiciones[j];
 
+                    double dx = p2.x - p1.x;
+                    double dy = p2.y - p1.y;
+                    double len = Math.sqrt(dx * dx + dy * dy);
+                    if (len == 0) continue;
+
+                    // Recortar para que no se dibuje debajo del botón
+                    double t = 30.0 / len;
+                    int recorteX1 = (int) (p1.x + dx * t);
+                    int recorteY1 = (int) (p1.y + dy * t);
+                    int recorteX2 = (int) (p2.x - dx * t);
+                    int recorteY2 = (int) (p2.y - dy * t);
+
                     g2d.setColor(Color.BLACK);
                     g2d.setStroke(new BasicStroke(2));
-                    drawArrowLine(g2d, p1.x, p1.y, p2.x, p2.y, 12, 8);
+                    drawArrowLine(g2d, recorteX1, recorteY1, recorteX2, recorteY2, 12, 8);
 
-                    // Dibujar peso de la arista
-                    int midX = (p1.x + p2.x) / 2;
-                    int midY = (p1.y + p2.y) / 2;
-                    g2d.setColor(Color.RED);
-                    g2d.setFont(new Font("Arial", Font.BOLD, Math.max(10, radioBoton / 6)));
-                    
-                    // Fondo blanco para el peso
+                    // Detectar si existe la arista inversa
+                    boolean esBidireccional = false;
+                    for (int l = 0; l < aristas.length(); l++) {
+                        AristaGrafica otra = aristas.getNodeAtIndex(l);
+                        if (otra.origen.equals(a.destino) && otra.destino.equals(a.origen)) {
+                            esBidireccional = true;
+                            break;
+                        }
+                    }
+
+                    // Calcular punto medio con desplazamiento si es bidireccional
+                    double offset = esBidireccional ? 15 : 0;
+                    double px = -dy / len * offset;
+                    double py = dx / len * offset;
+
+                    int midX = (int) ((p1.x + p2.x) / 2 + px);
+                    int midY = (int) ((p1.y + p2.y) / 2 + py);
+
+                    // Dibujar peso
                     String pesoStr = String.valueOf(a.peso);
                     FontMetrics fm = g2d.getFontMetrics();
                     int pesoWidth = fm.stringWidth(pesoStr);
                     int pesoHeight = fm.getHeight();
+
                     g2d.setColor(Color.WHITE);
-                    g2d.fillRect(midX - pesoWidth/2 - 2, midY - pesoHeight/2 - 2, pesoWidth + 4, pesoHeight);
+                    g2d.fillRect(midX - pesoWidth / 2 - 2, midY - pesoHeight / 2 - 2, pesoWidth + 4, pesoHeight);
                     g2d.setColor(Color.RED);
-                    g2d.drawString(pesoStr, midX - pesoWidth/2, midY + fm.getAscent()/2);
+                    g2d.setFont(new Font("Arial", Font.BOLD, Math.max(10, radioBoton / 6)));
+                    g2d.drawString(pesoStr, midX - pesoWidth / 2, midY + fm.getAscent() / 2);
                 }
             }
         }
