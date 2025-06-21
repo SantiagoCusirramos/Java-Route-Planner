@@ -730,6 +730,34 @@ public class Controller {
 
 	// ==================== GESTIÓN DE DISTRITOS ====================
 
+	public boolean addDistrictToZone(String zoneName, String districtName) throws ItemNotFound {
+		Zona zona = buscarZona(zoneName);
+		if (zona == null) {
+			throw new ItemNotFound("La zona '" + zoneName + "' no existe.");
+		}
+
+		BTree<Punto> arbol = zona.getArbolDistrito();
+		Punto nuevo = new Punto(districtName);
+
+		if (arbol.search(nuevo) != null) {
+			return false; // Distrito ya existe
+		}
+
+		arbol.insert(nuevo);
+		operationStack.push("ADD_DISTRICT:" + zoneName + ":" + districtName);
+		return true;
+	}
+
+	private Zona buscarZona(String zoneName) {
+		for (int i = 0; i < zones.length(); i++) {
+			Zona zona = zones.getNodeAtIndex(i);
+			if (zona.getNombre().equalsIgnoreCase(zoneName)) {
+				return zona;
+			}
+		}
+		return null;
+	}
+
 
 
 }
