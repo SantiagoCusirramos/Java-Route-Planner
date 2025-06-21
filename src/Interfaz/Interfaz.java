@@ -12,15 +12,14 @@ public class Interfaz extends JFrame {
     private Controller controller;
     private LinkedList<String> vertices;
     private LinkedList<AristaGrafica> aristas;
-    private LinkedList<JButton> botonesVer;
+    private LinkedList<JComponent> botonesVer;
     private DibujoPanel panel;
 
-    public Interfaz(){
-
+    public Interfaz() {
         this.controller = new Controller();
-        vertices = new LinkedList<String>();
-        aristas = new LinkedList<AristaGrafica>();
-        botonesVer = new LinkedList<JButton>();
+        vertices = new LinkedList<>();
+        aristas = new LinkedList<>();
+        botonesVer = new LinkedList<>();
 
         setTitle("Editor de Grafo");
         setSize(1200, 770);
@@ -31,7 +30,6 @@ public class Interfaz extends JFrame {
         panel.setLayout(null);
         add(panel, BorderLayout.CENTER);
 
-        // Agregar listener para redimensionamiento
         addComponentListener(new java.awt.event.ComponentAdapter() {
             @Override
             public void componentResized(java.awt.event.ComponentEvent evt) {
@@ -40,8 +38,7 @@ public class Interfaz extends JFrame {
         });
 
         JPanel botones = new JPanel();
-
-        JButton btnAgregarVertice = new JButton("Agregar vertice");
+        JButton btnAgregarVertice = new JButton("Agregar vértice");
         btnAgregarVertice.addActionListener(e -> {
             try {
                 agregarVertice();
@@ -49,7 +46,6 @@ public class Interfaz extends JFrame {
                 throw new RuntimeException(ex);
             }
         });
-
         JButton btnAgregarArista = new JButton("Agregar arista");
         btnAgregarArista.addActionListener(e -> {
             try {
@@ -58,26 +54,23 @@ public class Interfaz extends JFrame {
                 throw new RuntimeException(ex);
             }
         });
-
-        JButton btnEliminarVertice = new JButton("Eliminar vertice");
+        JButton btnEliminarVertice = new JButton("Eliminar vértice");
         btnEliminarVertice.addActionListener(e -> {
             try {
-                eliminiarVertice();
-            }catch (ItemNotFound ex){
+                eliminarVertice();
+            } catch (ItemNotFound ex) {
                 throw new RuntimeException(ex);
             }
         });
-
         JButton btnEliminarArista = new JButton("Eliminar arista");
         btnEliminarArista.addActionListener(e -> {
             try {
                 eliminarArista();
-            }catch (ItemNotFound ex){
+            } catch (ItemNotFound ex) {
                 throw new RuntimeException(ex);
             }
         });
-
-        JButton btnBuscarVertice = new JButton("Buscar vertice");
+        JButton btnBuscarVertice = new JButton("Buscar vértice");
         btnBuscarVertice.addActionListener(e -> buscarVertice());
 
         botones.add(btnAgregarVertice);
@@ -96,319 +89,217 @@ public class Interfaz extends JFrame {
             controller.addZone(nombre);
             vertices.insertLast(nombre);
 
-            // Cargar la imagen desde recursos
-            ImageIcon iconoOriginal = null;
+            // Cargar imagen de recurso
+            ImageIcon icono;
             try {
-                iconoOriginal = new ImageIcon(getClass().getResource("/Interfaz/img/edificios.png"));
+                icono = new ImageIcon(getClass().getResource("/Interfaz/img/edificio.png"));
             } catch (Exception e) {
-                JOptionPane.showMessageDialog(this, "No se pudo cargar la imagen del edificio.");
+                JOptionPane.showMessageDialog(this, "No se pudo cargar la imagen del vértice.");
                 return;
             }
 
-            // Escalar imagen (más grande y sin cortar)
-            int anchoImagen = 70;
-            int altoImagen = 70;
-            Image imagenRedimensionada = iconoOriginal.getImage().getScaledInstance(anchoImagen, altoImagen, Image.SCALE_SMOOTH);
-            ImageIcon iconoFinal = new ImageIcon(imagenRedimensionada);
-
-            // Crear botón
-            JButton btn = new JButton(nombre);
-            btn.setIcon(iconoFinal);
-            btn.setVerticalTextPosition(SwingConstants.BOTTOM);
-            btn.setHorizontalTextPosition(SwingConstants.CENTER);
-            btn.setFont(new Font("Arial", Font.BOLD, 12));
-            btn.setFocusPainted(false);
-            btn.setBorderPainted(false);
-            btn.setContentAreaFilled(false);
-            btn.setOpaque(false);
-
-            // Ajustar tamaño del botón para imagen + texto
-            int anchoBoton = anchoImagen + 10;
-            int altoBoton = altoImagen + 25;
-            btn.setPreferredSize(new Dimension(anchoBoton, altoBoton));
-            btn.setSize(anchoBoton, altoBoton);
-            btn.setBounds(0, 0, anchoBoton, altoBoton);
-
-            // Acción al hacer clic
-            btn.addActionListener(e -> abrirVentanaVertice(nombre));
-
-            botonesVer.insertLast(btn);
-            panel.add(btn);
+            BotonVertice boton = new BotonVertice(nombre, icono);
+            botonesVer.insertLast(boton);
+            panel.add(boton);
             panel.repaint();
         }
     }
 
-
     private void abrirVentanaVertice(String nombre) {
-        JFrame ventana = new JFrame("vertice: " + nombre);
+        JFrame ventana = new JFrame("Vértice: " + nombre);
         ventana.setSize(300, 150);
         ventana.setLocationRelativeTo(this);
-        ventana.add(new JLabel("Este es el vertice: " + nombre, SwingConstants.CENTER));
+        ventana.add(new JLabel("Este es el vértice: " + nombre, SwingConstants.CENTER));
         ventana.setVisible(true);
     }
 
-
     private void agregarArista() throws ItemNotFound {
         if (vertices.length() < 2) {
-            JOptionPane.showMessageDialog(this, "Agrega al menos dos vertices");
+            JOptionPane.showMessageDialog(this, "Agrega al menos dos vértices");
             return;
         }
-
         String[] vs = new String[vertices.length()];
-        for(int i = 0; i<vs.length; i++){
-            vs[i] = vertices.getNodeAtIndex(i);
-        }
-
+        for (int i = 0; i < vs.length; i++) vs[i] = vertices.getNodeAtIndex(i);
         String origen = (String) JOptionPane.showInputDialog(this, "Origen:", "Vertices", JOptionPane.PLAIN_MESSAGE, null, vs, null);
         String destino = (String) JOptionPane.showInputDialog(this, "Destino:", "Vertices", JOptionPane.PLAIN_MESSAGE, null, vs, null);
-
         if (origen == null || destino == null) return;
 
+        // No duplicar misma dirección
         for (int i = 0; i < aristas.length(); i++) {
-            AristaGrafica existente = aristas.getNodeAtIndex(i);
-            if (existente.origen.equals(origen) && existente.destino.equals(destino)) {
-                JOptionPane.showMessageDialog(this,
-                        "Ya existe una arista desde " + origen + " hacia " + destino + ".");
+            AristaGrafica ex = aristas.getNodeAtIndex(i);
+            if (ex.origen.equals(origen) && ex.destino.equals(destino)) {
+                JOptionPane.showMessageDialog(this, "Ya existe una arista de " + origen + " a " + destino);
                 return;
             }
         }
-
-        // Verificar si ya existe la arista inversa
+        // Reutilizar peso de inversa
         int peso = -1;
         for (int i = 0; i < aristas.length(); i++) {
-            AristaGrafica otra = aristas.getNodeAtIndex(i);
-            if (otra.origen.equals(destino) && otra.destino.equals(origen)) {
-                peso = otra.peso; // reutiliza el mismo peso
-                JOptionPane.showMessageDialog(this, "Se reutiliza el peso " + peso + " de la arista inversa " + destino + " → " + origen);
+            AristaGrafica inv = aristas.getNodeAtIndex(i);
+            if (inv.origen.equals(destino) && inv.destino.equals(origen)) {
+                peso = inv.peso;
+                JOptionPane.showMessageDialog(this, "Reutilizando peso inverso: " + peso);
                 break;
             }
         }
-
         if (peso == -1) {
             try {
-                peso = Integer.parseInt(JOptionPane.showInputDialog(this, "Ingrese el peso de la arista:"));
+                String ps = JOptionPane.showInputDialog(this, "Ingrese peso:");
+                if (ps == null) return;
+                peso = Integer.parseInt(ps);
             } catch (NumberFormatException e) {
-                JOptionPane.showMessageDialog(this, "Peso inválido. Se usará 1");
+                JOptionPane.showMessageDialog(this, "Peso inválido, usando 1");
                 peso = 1;
             }
         }
-
         controller.connectZones(origen, destino, peso);
         aristas.insertLast(new AristaGrafica(origen, destino, peso));
         panel.repaint();
-
     }
 
-    public  void eliminiarVertice() throws ItemNotFound {
-        String nombre = JOptionPane.showInputDialog(this, "Ingrese nombre del vertice:");
+    private void eliminarVertice() throws ItemNotFound {
+        String nombre = JOptionPane.showInputDialog(this, "Ingrese vértice:");
         if (nombre == null || nombre.isEmpty()) return;
-
         if (!vertices.search(nombre)) {
-            JOptionPane.showMessageDialog(this, "Vertice no encontrado.");
+            JOptionPane.showMessageDialog(this, "Vértice no existe.");
             return;
         }
-
-        // Eliminar del controlador
         controller.removeZone(nombre);
-        int index = vertices.findIndex(nombre);
-
+        int idx = vertices.findIndex(nombre);
         vertices.removeNode(nombre);
-        botonesVer.removeAtIndex(index);
-
-        // Eliminar las aristas relacionadas
+        botonesVer.removeAtIndex(idx);
         for (int i = 0; i < aristas.length(); ) {
             AristaGrafica a = aristas.getNodeAtIndex(i);
-            if (a.origen.equals(nombre) || a.destino.equals(nombre)) {
-                aristas.removeAtIndex(i); // No incrementar i porque la lista se mueve
-            } else {
-                i++;
-            }
+            if (a.origen.equals(nombre) || a.destino.equals(nombre)) aristas.removeAtIndex(i);
+            else i++;
         }
-
-        panel.removeAll(); // Borra todos los botones de la vista
-        for (int i = 0; i < botonesVer.length(); i++) {
-            panel.add(botonesVer.getNodeAtIndex(i)); // Agrega los botones actualizados
-        }
-
+        panel.removeAll();
+        for (int i = 0; i < botonesVer.length(); i++) panel.add(botonesVer.getNodeAtIndex(i));
         panel.repaint();
     }
 
     private void eliminarArista() throws ItemNotFound {
         if (aristas.length() == 0) {
-            JOptionPane.showMessageDialog(this, "No hay aristas para eliminar.");
+            JOptionPane.showMessageDialog(this, "No hay aristas.");
             return;
         }
-
         String[] vs = new String[vertices.length()];
-        for (int i = 0; i < vs.length; i++) {
-            vs[i] = vertices.getNodeAtIndex(i);
-        }
-
+        for (int i = 0; i < vs.length; i++) vs[i] = vertices.getNodeAtIndex(i);
         String origen = (String) JOptionPane.showInputDialog(this, "Origen:", "Eliminar arista", JOptionPane.PLAIN_MESSAGE, null, vs, null);
         String destino = (String) JOptionPane.showInputDialog(this, "Destino:", "Eliminar arista", JOptionPane.PLAIN_MESSAGE, null, vs, null);
-
         if (origen == null || destino == null) return;
-
         controller.disconnectZones(origen, destino);
-
         for (int i = 0; i < aristas.length(); i++) {
             AristaGrafica a = aristas.getNodeAtIndex(i);
-            if (a.origen.equals(origen) && a.destino.equals(destino)) {
-                aristas.removeAtIndex(i);
-                break;
-            }
+            if (a.origen.equals(origen) && a.destino.equals(destino)) { aristas.removeAtIndex(i); break; }
         }
-
         panel.repaint();
     }
 
     private void buscarVertice() {
-        String nombre = JOptionPane.showInputDialog(this, "Nombre del vertice a buscar:");
+        String nombre = JOptionPane.showInputDialog(this, "Buscar vértice:");
         if (nombre == null || nombre.isEmpty()) return;
+        JOptionPane.showMessageDialog(this, vertices.search(nombre)?
+                "Existe: " + nombre : "No existe: " + nombre);
+    }
 
-        if (vertices.search(nombre)) {
-            JOptionPane.showMessageDialog(this, "El vertice '" + nombre + "' SÍ existe.");
-        } else {
-            JOptionPane.showMessageDialog(this, "El vertice '" + nombre + "' NO existe.");
+    class BotonVertice extends JComponent {
+        private final String nombre;
+        private final Image imagen;
+
+        BotonVertice(String nombre, ImageIcon icono) {
+            this.nombre = nombre;
+            this.imagen = icono.getImage().getScaledInstance(70, 70, Image.SCALE_SMOOTH);
+            setPreferredSize(new Dimension(80, 100));
+            setSize(80, 100);
+            setOpaque(false);
+            addMouseListener(new java.awt.event.MouseAdapter() {
+                public void mouseClicked(java.awt.event.MouseEvent evt) {
+                    abrirVentanaVertice(nombre);
+                }
+            });
+        }
+
+        @Override protected void paintComponent(Graphics g) {
+            super.paintComponent(g);
+            Graphics2D g2 = (Graphics2D) g;
+            int imgX = (getWidth() - 70) / 2;
+            g2.drawImage(imagen, imgX, 0, 70, 70, this);
+            g2.setFont(new Font("Arial", Font.BOLD, 12));
+            g2.setColor(Color.BLACK);
+            FontMetrics fm = g2.getFontMetrics();
+            int w = fm.stringWidth(nombre);
+            g2.drawString(nombre, (getWidth() - w)/2, 90);
         }
     }
 
-
-
     class DibujoPanel extends JPanel {
-
-        @Override
-        protected void paintComponent(Graphics g) {
+        @Override protected void paintComponent(Graphics g) {
             super.paintComponent(g);
-
-            // Verificar si hay vertices para dibujar
             if (vertices.length() == 0) {
                 g.setColor(Color.GRAY);
                 g.setFont(new Font("Arial", Font.BOLD, 16));
-                String mensaje = "Agrega vertices para comenzar";
+                String msg = "Agrega vértices";
                 FontMetrics fm = g.getFontMetrics();
-                int x = (getWidth() - fm.stringWidth(mensaje)) / 2;
-                int y = getHeight() / 2;
-                g.drawString(mensaje, x, y);
+                g.drawString(msg, (getWidth()-fm.stringWidth(msg))/2, getHeight()/2);
                 return;
             }
-
-            int radioBoton = Math.max(40, Math.min(80, getWidth() / 20));
-            int centroX = getWidth() / 2;
-            int centroY = getHeight() / 2;
-            int margen = radioBoton + 20;
-            int r = Math.min(centroX - margen, centroY - margen);
-            r = Math.max(r, 100);
-
-            double angulo = (vertices.length() == 1) ? 0 : 2 * Math.PI / vertices.length();
-
-            Point[] posiciones = new Point[vertices.length()];
-            for (int i = 0; i < vertices.length(); i++) {
-                int x, y;
-                if (vertices.length() == 1) {
-                    x = centroX;
-                    y = centroY;
-                } else {
-                    x = (int) (centroX + r * Math.cos(i * angulo));
-                    y = (int) (centroY + r * Math.sin(i * angulo));
-                }
-                posiciones[i] = new Point(x, y);
-
-                JButton btn = botonesVer.getNodeAtIndex(i);
-                int anchoBoton = Math.max(60, radioBoton + 10);
-                int altoBoton = Math.max(25, radioBoton / 2);
-                btn.setBounds(x - anchoBoton / 2, y - altoBoton / 2, anchoBoton, altoBoton);
-
-                int fontSize = Math.max(8, Math.min(14, radioBoton / 5));
-                btn.setFont(new Font("Arial", Font.BOLD, fontSize));
+            int radio = Math.max(40, Math.min(80, getWidth()/20));
+            int cX = getWidth()/2, cY = getHeight()/2;
+            int m = radio+20;
+            int R = Math.max(100, Math.min(cX-m, cY-m));
+            double ang = vertices.length()==1?0:2*Math.PI/vertices.length();
+            Point[] pts = new Point[vertices.length()];
+            for (int i=0;i<vertices.length();i++) {
+                int x = (vertices.length()==1?cX:(int)(cX+R*Math.cos(i*ang)));
+                int y = (vertices.length()==1?cY:(int)(cY+R*Math.sin(i*ang)));
+                pts[i]=new Point(x,y);
+                JComponent comp = botonesVer.getNodeAtIndex(i);
+                Dimension d = comp.getPreferredSize();
+                comp.setBounds(x-d.width/2,y-d.height/2,d.width,d.height);
             }
-
-            Graphics2D g2d = (Graphics2D) g;
-            g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-
-            for (int k = 0; k < aristas.length(); k++) {
-                AristaGrafica a = aristas.getNodeAtIndex(k);
-                int i = vertices.findIndex(a.origen);
-                int j = vertices.findIndex(a.destino);
-
-                if (i != -1 && j != -1) {
-                    Point p1 = posiciones[i];
-                    Point p2 = posiciones[j];
-
-                    double dx = p2.x - p1.x;
-                    double dy = p2.y - p1.y;
-                    double len = Math.sqrt(dx * dx + dy * dy);
-                    if (len == 0) continue;
-
-                    // Recortar para que no se dibuje debajo del botón
-                    double t = 30.0 / len;
-                    int recorteX1 = (int) (p1.x + dx * t);
-                    int recorteY1 = (int) (p1.y + dy * t);
-                    int recorteX2 = (int) (p2.x - dx * t);
-                    int recorteY2 = (int) (p2.y - dy * t);
-
-                    g2d.setColor(Color.BLACK);
-                    g2d.setStroke(new BasicStroke(2));
-                    drawArrowLine(g2d, recorteX1, recorteY1, recorteX2, recorteY2, 12, 8);
-
-                    // Calcular posición del peso: 50 hacia destino + 10 perpendicular
-                    double ux = dx / len; // vector dirección
-                    double uy = dy / len;
-
-                    double nx = -uy; // vector perpendicular
-                    double ny = ux;
-
-                    int pesoX = (int) (p1.x + ux * 50 + nx * 10);
-                    int pesoY = (int) (p1.y + uy * 50 + ny * 10);
-
-                    String pesoStr = String.valueOf(a.peso);
-                    FontMetrics fm = g2d.getFontMetrics();
-                    int pesoWidth = fm.stringWidth(pesoStr);
-                    int pesoHeight = fm.getHeight();
-
-                    g2d.setColor(Color.WHITE);
-                    g2d.fillRect(pesoX - pesoWidth / 2 - 2, pesoY - pesoHeight / 2 - 2, pesoWidth + 4, pesoHeight);
-                    g2d.setColor(Color.RED);
-                    g2d.setFont(new Font("Arial", Font.BOLD, Math.max(10, radioBoton / 6)));
-                    g2d.drawString(pesoStr, pesoX - pesoWidth / 2, pesoY + fm.getAscent() / 2);
-                }
+            Graphics2D g2 = (Graphics2D)g;
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,RenderingHints.VALUE_ANTIALIAS_ON);
+            for (int k=0;k<aristas.length();k++){
+                AristaGrafica a=aristas.getNodeAtIndex(k);
+                Point p1=pts[vertices.findIndex(a.origen)];
+                Point p2=pts[vertices.findIndex(a.destino)];
+                double dx=p2.x-p1.x,dy=p2.y-p1.y;
+                double len=Math.hypot(dx,dy);
+                if(len==0)continue;
+                double t=30/len;
+                int x1=(int)(p1.x+dx*t),y1=(int)(p1.y+dy*t);
+                int x2=(int)(p2.x-dx*t),y2=(int)(p2.y-dy*t);
+                g2.setColor(Color.BLACK);
+                g2.setStroke(new BasicStroke(2));
+                drawArrowLine(g2,x1,y1,x2,y2,12,8);
+                double ux=dx/len,uy=dy/len;
+                double nx=-uy,ny=ux;
+                int px=(int)(p1.x+ux*50+nx*10);
+                int py=(int)(p1.y+uy*50+ny*10);
+                String s=String.valueOf(a.peso);
+                FontMetrics fm2=g2.getFontMetrics();
+                int w=fm2.stringWidth(s),h=fm2.getHeight();
+                g2.setColor(Color.WHITE);
+                g2.fillRect(px-w/2-2,py-h/2-2,w+4,h);
+                g2.setColor(Color.RED);
+                g2.setFont(new Font("Arial",Font.BOLD,Math.max(10,radio/6)));
+                g2.drawString(s,px-w/2,py+fm2.getAscent()/2);
             }
         }
-
-        private void drawArrowLine(Graphics2D g, int x1, int y1, int x2, int y2, int d, int h) {
-            int dx = x2 - x1, dy = y2 - y1;
-            double D = Math.sqrt(dx * dx + dy * dy);
-            
-            // Evitar división por cero si los puntos son el mismo
-            if (D == 0) return;
-            
-            double xm = D - d, xn = xm, ym = h, yn = -h, x;
-            double sin = dy / D, cos = dx / D;
-
-            x = xm * cos - ym * sin + x1;
-            ym = xm * sin + ym * cos + y1;
-            xm = x;
-
-            x = xn * cos - yn * sin + x1;
-            yn = xn * sin + yn * cos + y1;
-            xn = x;
-
-            int[] xpoints = {x2, (int) xm, (int) xn};
-            int[] ypoints = {y2, (int) ym, (int) yn};
-
-            g.drawLine(x1, y1, x2, y2);
-            g.fillPolygon(xpoints, ypoints, 3);
+        private void drawArrowLine(Graphics2D g,int x1,int y1,int x2,int y2,int d,int h){
+            double dx=x2-x1,dy=y2-y1,D=Math.hypot(dx,dy);
+            if(D==0)return;
+            double xm=D-d,ym=h;
+            double xn=xm,yn=-h;
+            double sin=dy/D,cos=dx/D,x;
+            x=xm*cos-ym*sin+x1;ym=xm*sin+ym*cos+y1;xm=x;
+            x=xn*cos-yn*sin+x1;yn=xn*sin+yn*cos+y1;xn=x;
+            int[] xp={x2,(int)xm,(int)xn};
+            int[] yp={y2,(int)ym,(int)yn};
+            g.drawLine(x1,y1,x2,y2);
+            g.fillPolygon(xp,yp,3);
         }
     }
-
-    static class AristaGrafica {
-        String origen, destino;
-        int peso;
-
-        AristaGrafica(String o, String d, int p) {
-            origen = o;
-            destino = d;
-            peso = p;
-        }
-    }
+    static class AristaGrafica{String origen,destino;int peso;AristaGrafica(String o,String d,int p){origen=o;destino=d;peso=p;}}
 }
