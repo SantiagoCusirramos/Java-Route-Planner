@@ -4,7 +4,7 @@ import DataStructure.Arbolito.BTree;
 
 public class Zona {
     private String nombre;
-    private BTree<Object> arbolDistrito;
+    private BTree<Punto> arbolDistrito;
 
     public Zona(String nombre, int orden) {
         this.nombre = nombre;
@@ -15,8 +15,7 @@ public class Zona {
         return nombre;
     }
 
-    public BTree<Object> getArbolDistrito() {
+    public BTree<Punto> getArbolDistrito() {
         return arbolDistrito;
     }
 }
-1
