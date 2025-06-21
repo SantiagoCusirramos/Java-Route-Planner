@@ -223,21 +223,66 @@ public class Interfaz extends JFrame {
         @Override protected void paintComponent(Graphics g) {
             super.paintComponent(g);
             Graphics2D g2 = (Graphics2D) g;
+
+            // Dibuja la imagen
             int imgX = (getWidth() - 70) / 2;
             g2.drawImage(imagen, imgX, 0, 70, 70, this);
+
+            // Formato del texto de los vertices
             g2.setFont(new Font("Arial", Font.BOLD, 12));
-            g2.setColor(Color.BLACK);
+            g2.setColor(Color.WHITE);
+
+            // Metrices del texto
             FontMetrics fm = g2.getFontMetrics();
-            int w = fm.stringWidth(nombre);
-            g2.drawString(nombre, (getWidth() - w)/2, 90);
+            String texto = nombre;
+            int maxWidth = getWidth();
+
+            // Si el texto es más ancho que el componente, lo recortamos y añadimos "…"
+            if (fm.stringWidth(texto) > maxWidth) {
+                while (fm.stringWidth(texto + "…") > maxWidth && texto.length() > 0) {
+                    texto = texto.substring(0, texto.length() - 1);
+                }
+                texto += "…";
+            }
+
+            int textWidth = fm.stringWidth(texto);
+            int textX = (getWidth() - textWidth) / 2;
+            int textY = 90;  // altura fija debajo de la imagen
+
+
+            g2.drawString(texto, textX, textY);
         }
     }
 
     class DibujoPanel extends JPanel {
+
+        private Image fondo;
+
+        public DibujoPanel() {
+            try {
+                fondo = new ImageIcon(getClass().getResource("/Interfaz/img/fondo.jpeg")).getImage();
+            } catch (Exception e) {
+                System.err.println("No se pudo cargar la imagen de fondo.");
+            }
+        }
+
         @Override protected void paintComponent(Graphics g) {
             super.paintComponent(g);
+
+            if (fondo != null) {
+                Graphics2D g2d = (Graphics2D) g.create();
+
+                // Valor de transparencia: 0.0 (completamente transparente) a 1.0 (opaco)
+                float alpha = 0.9f;
+
+                g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha));
+                g2d.drawImage(fondo, 0, 0, getWidth(), getHeight(), this);
+
+                g2d.dispose(); // Limpia el contexto de dibujo
+            }
+
             if (vertices.length() == 0) {
-                g.setColor(Color.GRAY);
+                g.setColor(Color.WHITE);
                 g.setFont(new Font("Arial", Font.BOLD, 16));
                 String msg = "Agrega vértices";
                 FontMetrics fm = g.getFontMetrics();
@@ -268,11 +313,11 @@ public class Interfaz extends JFrame {
                 double len=Math.hypot(dx,dy);if(len==0)continue;
 
                 // Mientras el numero sea menor la fecha se alarga
-                double t=35/len;
+                double t=40/len;
                 int x1=(int)(p1.x+dx*t),y1=(int)(p1.y+dy*t);
                 int x2=(int)(p2.x-dx*t),y2=(int)(p2.y-dy*t);
 
-                g2.setColor(Color.BLACK);
+                g2.setColor(Color.WHITE);
 
                 // grosos del la linea
                 g2.setStroke(new BasicStroke(2));
@@ -292,7 +337,8 @@ public class Interfaz extends JFrame {
 
                 // Modificacion del subrayado del peso
                 g2.setColor(Color.YELLOW);
-                g2.fillRect(px-w/2-2,py-h/2-2,w+4,h);
+                int extra = 20;
+                g2.fillRect(px - w/2 - extra/2, py - h/2 - 2, w + extra, h+6);
 
                 // Tamaño del tipo de fuente del peso
                 g2.setColor(Color.RED);
