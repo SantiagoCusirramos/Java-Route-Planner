@@ -138,6 +138,29 @@ public class BTree<E extends Comparable<E>> {
         }
         return false;
     }
+    public E searchX(E data) {
+        return searchRecursiveX(root, data);
+    }
+
+    private E searchRecursiveX(BNode<E> current, E data) {
+        if (current == null) {
+            return null;
+        }
+
+        int[] pos = new int[1];
+        boolean found = current.searchNode(data, pos);
+
+        if (found) {
+            return current.keys.get(pos[0]); // ← Devuelve el objeto real
+        }
+
+        if (pos[0] < current.childs.length && current.childs[pos[0]] != null) {
+            return searchRecursiveX(current.childs[pos[0]], data);
+        }
+
+        return null;
+    }
+
 
     //    ---------------------------Delete------------------------------------
     public void remove(E cl) {
