@@ -758,7 +758,7 @@ public class Controller {
 		BTree<Punto> arbol = zona.getArbolDistrito();
 		Punto nuevo = new Punto(districtName);
 
-		if (arbol.search(nuevo) != null) {
+		if (arbol.search(nuevo) != false) {
 			return false; // Distrito ya existe
 		}
 
@@ -786,7 +786,7 @@ public class Controller {
 		BTree<Punto> arbol = zona.getArbolDistrito();
 		Punto distrito = new Punto(districtName);
 
-		if (arbol.search(distrito) == null) {
+		if (false == arbol.search(distrito)) {
 			return false; // No existe
 		}
 
@@ -800,9 +800,9 @@ public class Controller {
 			throw new ItemNotFound("La zona '" + zoneName + "' no existe.");
 		}
 
-		boolean b = zona.getArbolDistrito().search(new Punto(districtName)) != null;
-		return b;
+		return zona.getArbolDistrito().search(new Punto(districtName));
 	}
+
 	public void showDistrictsOfZone(String zoneName) throws ItemNotFound {
 		Zona zona = buscarZona(zoneName);
 		if (zona == null) {
