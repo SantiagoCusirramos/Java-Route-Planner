@@ -355,8 +355,4 @@ public class Interfaz extends JFrame {
             peso = p;
         }
     }
-
-    public static void main(String[] args) {
-        SwingUtilities.invokeLater(Interfaz::new);
-    }
 }
