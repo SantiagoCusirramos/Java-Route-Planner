@@ -178,7 +178,7 @@ public class Controller {
 
 		return urbanGraph.searchEdge(zone1, zone2, -1); // -1: ignora peso
 	}
-
+2
 
 	// ==================== BÚSQUEDA DE RUTAS AVANZADA ====================
 
@@ -484,11 +484,9 @@ public class Controller {
 		return recentRoutes;
 	}
 
-
-	//deshace la ultima operacion realizada
 	public boolean undoLastOperation() throws ExceptionIsEmpty {
 		if (operationStack.isEmpty()) {
-			return false;
+			throw new ExceptionIsEmpty("No hay operaciones para deshacer.");
 		}
 
 		String lastOperation = operationStack.pop();
@@ -496,31 +494,59 @@ public class Controller {
 
 		try {
 			switch (parts[0]) {
-			case "ADD_ZONE":
-				urbanGraph.removeVertex(parts[1]);
-				zones.removeNode(parts[1]);
-				break;
-			case "REMOVE_ZONE":
-				urbanGraph.insertVertex(parts[1]);
-				zones.insertLast(parts[1]);
-				break;
-			case "CONNECT":
-				String[] connection = parts[1].split("->");
-				urbanGraph.removeEdge(connection[0], connection[1]);
-				break;
-			case "DISCONNECT":
-				String[] disconnection = parts[1].split("->");
-				urbanGraph.insertEdge(disconnection[0], disconnection[1]);
-				break;
-			default:
-				//para operaciones de consulta no se requiere deshacer
-				return true;
+				case "ADD_ZONE": {
+					// Se agregó una zona → la quitamos
+					urbanGraph.removeVertex(parts[1]);
+
+					// Buscar por nombre y eliminar objeto Zona
+					for (int i = 0; i < zones.length(); i++) {
+						Zona z = zones.getNodeAtIndex(i);
+						if (z.getNombre().equalsIgnoreCase(parts[1])) {
+							zones.removeAtIndex(i);
+							break;
+						}
+					}
+					break;
+				}
+				case "REMOVE_ZONE": {
+					// Se eliminó una zona → la restauramos vacía
+					urbanGraph.insertVertex(parts[1]);
+					zones.insertLast(new Zona(parts[1], 3)); // El orden 3 es un ejemplo, ajústalo si lo guardas
+
+					// 🔺 Nota: el árbol y conexiones NO se restauran con esta implementación
+					break;
+				}
+				case "CONNECT": {
+					// Se conectaron 2 zonas → desconectarlas
+					String[] connection = parts[1].split("->");
+					urbanGraph.removeEdge(connection[0], connection[1]);
+					break;
+				}
+				case "DISCONNECT": {
+					// Se desconectaron 2 zonas → restaurar conexión (sin peso)
+					String[] disconnection = parts[1].split("->");
+
+					// Si el peso estaba en el string, lo recuperamos
+					int weight = 1;
+					if (parts.length == 3) {
+						weight = Integer.parseInt(parts[2]);
+					}
+
+					urbanGraph.insertEdge(disconnection[0], disconnection[1], weight);
+					break;
+				}
+				default:
+					// Operación no reversible (por ejemplo, consultas)
+					return true;
 			}
 			return true;
+
 		} catch (Exception e) {
+			System.err.println("Error al deshacer operación: " + e.getMessage());
 			return false;
 		}
 	}
+
 
 
 	//limpiar historial
