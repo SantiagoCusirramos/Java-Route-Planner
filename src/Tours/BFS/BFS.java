@@ -74,8 +74,7 @@ public class BFS<E> {
         }
     }
     
-    private void enqueueNeighborsWithParents(Vertex<E> vertex, LinkedQueue<Vertex<E>> queue, 
-                                           LinkedList<Vertex<E>> parents) {
+    private void enqueueNeighborsWithParents(Vertex<E> vertex, LinkedQueue<Vertex<E>> queue, LinkedList<Vertex<E>> parents) {
         Node<Edge<E>> edgeNode = vertex.getListAdj().getHead();
         
         while (edgeNode != null) {
