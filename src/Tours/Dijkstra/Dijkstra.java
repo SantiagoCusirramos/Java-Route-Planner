@@ -9,6 +9,7 @@ import Exceptions.ExceptionIsEmpty;
 import DataStructure.PriorityQueue.PriorityQueueLinkSort;
 
 import java.util.HashMap; // esto debemos de consultar si lo podemos implementar o usar
+// idea: reemplazar con listas enlazadas
 
 
 public class Dijkstra {
