@@ -758,6 +758,25 @@ public class Controller {
 		return null;
 	}
 
+	public boolean removeDistrictFromZone(String zoneName, String districtName) throws ItemNotFound {
+		Zona zona = buscarZona(zoneName);
+		if (zona == null) {
+			throw new ItemNotFound("La zona '" + zoneName + "' no existe.");
+		}
+
+		BTree<Punto> arbol = zona.getArbolDistrito();
+		Punto distrito = new Punto(districtName);
+
+		if (arbol.search(distrito) == null) {
+			return false; // No existe
+		}
+
+		arbol.remove(distrito);
+		operationStack.push("REMOVE_DISTRICT:" + zoneName + ":" + districtName);
+		return true;
+	}
+
+
 
 
 }
