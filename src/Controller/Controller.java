@@ -936,4 +936,54 @@ public class Controller {
 		}
 		return false;
 	}
+
+
+	//ALTO RIESGO(NO CREO QUE FUNCIONE)
+	/**
+	 * Verifica si existe una ruta entre dos puntos que pertenecen a zonas distintas,
+	 * considerando conexiones tanto internas (dentro de zonas) como externas (entre zonas).
+	 *
+	 * @param zonaA nombre de la zona del punto de origen.
+	 * @param puntoA nombre del punto de origen.
+	 * @param zonaB nombre de la zona del punto de destino.
+	 * @param puntoB nombre del punto de destino.
+	 * @return true si existe una ruta entre los dos puntos, false en caso contrario.
+	 * @throws ItemNotFound si alguna de las zonas o puntos no existen.
+	 */
+	public boolean existeRutaEntreZonasEntrePuntos(String zonaA, String puntoA, String zonaB, String puntoB) throws ItemNotFound {
+		Zona zA = buscarZona(zonaA);
+		Zona zB = buscarZona(zonaB);
+
+		if (zA == null || zB == null) throw new ItemNotFound("Una o ambas zonas no existen.");
+
+		Punto pA = zA.getArbolDistrito().searchX(new Punto(puntoA));
+		Punto pB = zB.getArbolDistrito().searchX(new Punto(puntoB));
+
+		if (pA == null || pB == null) throw new ItemNotFound("Uno o ambos puntos no existen.");
+
+		// Inicia DFS global desde pA
+		return dfsGlobal(pA, pB, new LinkedList<>());
+	}
+
+	private boolean dfsGlobal(Punto actual, Punto destino, LinkedList<Punto> visitados) {
+		if (actual.equals(destino)) return true;
+
+		visitados.insertLast(actual);
+
+		LinkedList<ConexionPunto> conexiones = actual.getConexiones();
+		for (int i = 0; i < conexiones.length(); i++) {
+			ConexionPunto conexion = conexiones.getNodeAtIndex(i);
+			Punto siguiente = conexion.getDestino();
+
+			if (!estaVisitado(visitados, siguiente)) {
+				if (dfsGlobal(siguiente, destino, visitados)) {
+					return true;
+				}
+			}
+		}
+
+		return false;
+	}
+
+
 }
