@@ -178,7 +178,6 @@ public class Controller {
 
 		return urbanGraph.searchEdge(zone1, zone2, -1); // -1: ignora peso
 	}
-2
 
 	// ==================== BÚSQUEDA DE RUTAS AVANZADA ====================
 
