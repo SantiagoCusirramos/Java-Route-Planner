@@ -178,7 +178,7 @@ public class Controller {
 
 		return urbanGraph.searchEdge(zone1, zone2, -1); // -1: ignora peso
 	}
-2
+
 
 	// ==================== BÚSQUEDA DE RUTAS AVANZADA ====================
 
@@ -813,14 +813,24 @@ public class Controller {
 		System.out.println(zona.getArbolDistrito().toString()); // Asume toString ordenado
 	}
 
-	//BUSQUEDAS
+	//BUSQUEDA
+	/**
+	 * Conecta dos puntos dentro de una misma zona, asignando un peso a la conexión.
+	 *
+	 * @param zoneName nombre de la zona donde están ubicados ambos puntos.
+	 * @param pointA   nombre del punto de origen.
+	 * @param pointB   nombre del punto de destino.
+	 * @param peso     peso de la conexión (por ejemplo, distancia o tiempo).
+	 * @return true si la conexión se realizó exitosamente.
+	 * @throws ItemNotFound si la zona o alguno de los puntos no existen.
+	 */
 	public boolean connectPointsInZone(String zoneName, String pointA, String pointB, int peso) throws ItemNotFound {
 		Zona zona = buscarZona(zoneName);
 		if (zona == null) throw new ItemNotFound("Zona '" + zoneName + "' no encontrada.");
 
 		BTree<Punto> arbol = zona.getArbolDistrito();
-		Punto origen = arbol.search(new Punto(pointA));
-		Punto destino = arbol.search(new Punto(pointB));
+		Punto origen = arbol.searchX(new Punto(pointA));
+		Punto destino = arbol.searchX(new Punto(pointB));
 
 		if (origen == null || destino == null) {
 			throw new ItemNotFound("Uno o ambos puntos no existen en la zona.");
@@ -831,6 +841,99 @@ public class Controller {
 		return true;
 	}
 
+	/**
+	 * Verifica si existe una ruta entre dos puntos dentro de una misma zona.
+	 * Utiliza un algoritmo DFS sobre las conexiones entre los puntos.
+	 *
+	 * @param zoneName nombre de la zona.
+	 * @param inicio   nombre del punto de inicio.
+	 * @param destino  nombre del punto de destino.
+	 * @return true si existe un camino entre los puntos, false en caso contrario.
+	 * @throws ItemNotFound si la zona o alguno de los puntos no existen.
+	 */
+	public boolean existeRutaEntrePuntos(String zoneName, String inicio, String destino) throws ItemNotFound {
+		Zona zona = buscarZona(zoneName);
+		if (zona == null) throw new ItemNotFound("Zona no encontrada.");
 
+		Punto pInicio = zona.getArbolDistrito().searchX(new Punto(inicio));
+		Punto pDestino = zona.getArbolDistrito().searchX(new Punto(destino));
 
+		if (pInicio == null || pDestino == null) {
+			throw new ItemNotFound("Uno o ambos puntos no existen.");
+		}
+
+		return dfsPuntos(pInicio, pDestino, new LinkedList<>());
+	}
+
+	/**
+	 * Conecta dos puntos que se encuentran en zonas diferentes.
+	 *
+	 * @param zonaA   nombre de la zona del punto A.
+	 * @param puntoA  nombre del punto A.
+	 * @param zonaB   nombre de la zona del punto B.
+	 * @param puntoB  nombre del punto B.
+	 * @param peso    peso de la conexión.
+	 * @return true si la conexión se realizó correctamente.
+	 * @throws ItemNotFound si alguna de las zonas o puntos no existen.
+	 */
+	public boolean conectarPuntosEntreZonas(String zonaA, String puntoA, String zonaB, String puntoB, int peso) throws ItemNotFound {
+		Zona zA = buscarZona(zonaA);
+		Zona zB = buscarZona(zonaB);
+
+		if (zA == null || zB == null) throw new ItemNotFound("Una o ambas zonas no existen.");
+
+		Punto pA = zA.getArbolDistrito().searchX(new Punto(puntoA));
+		Punto pB = zB.getArbolDistrito().searchX(new Punto(puntoB));
+
+		if (pA == null || pB == null) throw new ItemNotFound("Uno o ambos puntos no existen.");
+
+		pA.agregarConexion(pB, peso);
+		operationStack.push("CROSS_CONNECT:" + zonaA + ":" + puntoA + "->" + zonaB + ":" + puntoB + ":" + peso);
+		return true;
+	}
+
+	/**
+	 * Recorrido en profundidad (DFS) entre puntos conectados.
+	 *
+	 * @param actual   punto actual desde donde se parte.
+	 * @param destino  punto objetivo que se desea alcanzar.
+	 * @param visitados lista de puntos ya visitados para evitar ciclos.
+	 * @return true si se encontró una ruta desde actual hasta destino.
+	 */
+	private boolean dfsPuntos(Punto actual, Punto destino, LinkedList<Punto> visitados) {
+		if (actual.equals(destino)) return true;
+
+		visitados.insertLast(actual);
+
+		LinkedList<ConexionPunto> conexiones = actual.getConexiones();
+		for (int i = 0; i < conexiones.length(); i++) {
+			ConexionPunto conexion = conexiones.getNodeAtIndex(i);
+			Punto siguiente = conexion.getDestino();
+
+			if (!estaVisitado(visitados, siguiente)) {
+				if (dfsPuntos(siguiente, destino, visitados)) {
+					return true;
+				}
+			}
+		}
+
+		return false;
+	}
+
+	/**
+	 * Verifica si un punto ya ha sido visitado durante la búsqueda DFS.
+	 *
+	 * @param visitados lista de puntos ya recorridos.
+	 * @param objetivo  punto que se desea verificar.
+	 * @return true si ya fue visitado, false en caso contrario.
+	 */
+	private boolean estaVisitado(LinkedList<Punto> visitados, Punto objetivo) {
+		for (int i = 0; i < visitados.length(); i++) {
+			Punto p = visitados.getNodeAtIndex(i);
+			if (p.getNombre().equalsIgnoreCase(objetivo.getNombre())) {
+				return true;
+			}
+		}
+		return false;
+	}
 }
