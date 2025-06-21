@@ -119,11 +119,6 @@ public class Controller {
 	}
 // ==================== GESTIÓN DE RUTAS ENTRE ZONAS ====================
 
-	// Conecta dos zonas con una ruta de peso por defecto
-	public boolean connectZones(String zone1, String zone2) throws ItemNotFound {
-		return connectZones(zone1, zone2, 1); // Peso por defecto
-	}
-
 	// Conecta dos zonas con un peso especificado
 	public boolean connectZones(String zone1, String zone2, int weight) throws ItemNotFound {
 		if (zone1 == null || zone2 == null || zone1.isEmpty() || zone2.isEmpty()) {
@@ -169,16 +164,6 @@ public class Controller {
 
 		return removed;
 	}
-
-	// Verifica si dos zonas están conectadas (con cualquier peso)
-	public boolean areZonesConnected(String zone1, String zone2) {
-		if (zone1 == null || zone2 == null || zone1.isEmpty() || zone2.isEmpty()) {
-			return false;
-		}
-
-		return urbanGraph.searchEdge(zone1, zone2, -1); // -1: ignora peso
-	}
-
 
 	// ==================== BÚSQUEDA DE RUTAS AVANZADA ====================
 

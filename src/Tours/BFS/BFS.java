@@ -40,7 +40,7 @@ public class BFS<E> {
         
         while (!queue.isEmpty()) {
             Vertex<E> current = queue.dequeue();
-            Vertex<E> currentParent = parents.removeFirst();// esta parte es del btree, revisar porque parece que parents no es lista elanzada
+            Vertex<E> currentParent = parents.removeFirst();
             
             if (current.equals(end)) {
                 return buildPath(current, currentParent, parents);
