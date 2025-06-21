@@ -151,7 +151,7 @@ public class BTree<E extends Comparable<E>> {
         boolean found = current.searchNode(data, pos);
 
         if (found) {
-            return current.keys.get(pos[0]); // ← Devuelve el objeto real
+            return current.keys[pos[0]];
         }
 
         if (pos[0] < current.childs.length && current.childs[pos[0]] != null) {
