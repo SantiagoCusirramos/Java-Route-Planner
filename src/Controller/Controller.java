@@ -784,6 +784,17 @@ public class Controller {
 		boolean b = zona.getArbolDistrito().search(new Punto(districtName)) != null;
 		return b;
 	}
+	public void showDistrictsOfZone(String zoneName) throws ItemNotFound {
+		Zona zona = buscarZona(zoneName);
+		if (zona == null) {
+			throw new ItemNotFound("La zona '" + zoneName + "' no existe.");
+		}
+
+		System.out.println("Distritos en la zona '" + zoneName + "':");
+		System.out.println(zona.getArbolDistrito().toString()); // Asume toString ordenado
+	}
+
+
 
 
 
