@@ -91,19 +91,53 @@ public class Interfaz extends JFrame {
     }
 
     private void agregarVertice() throws ItemDuplicated {
-        String nombre = JOptionPane.showInputDialog(this, "Ingrese nombre del vertice:");
+        String nombre = JOptionPane.showInputDialog(this, "Ingrese nombre del vértice:");
         if (nombre != null && !nombre.isEmpty()) {
             controller.addZone(nombre);
-            vertices.insertLast((nombre));
+            vertices.insertLast(nombre);
 
+            // Cargar la imagen desde recursos
+            ImageIcon iconoOriginal = null;
+            try {
+                iconoOriginal = new ImageIcon(getClass().getResource("/Interfaz/img/edificios.png"));
+            } catch (Exception e) {
+                JOptionPane.showMessageDialog(this, "No se pudo cargar la imagen del edificio.");
+                return;
+            }
+
+            // Escalar imagen (más grande y sin cortar)
+            int anchoImagen = 70;
+            int altoImagen = 70;
+            Image imagenRedimensionada = iconoOriginal.getImage().getScaledInstance(anchoImagen, altoImagen, Image.SCALE_SMOOTH);
+            ImageIcon iconoFinal = new ImageIcon(imagenRedimensionada);
+
+            // Crear botón
             JButton btn = new JButton(nombre);
-            btn.setBounds(0,0,60,30);
+            btn.setIcon(iconoFinal);
+            btn.setVerticalTextPosition(SwingConstants.BOTTOM);
+            btn.setHorizontalTextPosition(SwingConstants.CENTER);
+            btn.setFont(new Font("Arial", Font.BOLD, 12));
+            btn.setFocusPainted(false);
+            btn.setBorderPainted(false);
+            btn.setContentAreaFilled(false);
+            btn.setOpaque(false);
+
+            // Ajustar tamaño del botón para imagen + texto
+            int anchoBoton = anchoImagen + 10;
+            int altoBoton = altoImagen + 25;
+            btn.setPreferredSize(new Dimension(anchoBoton, altoBoton));
+            btn.setSize(anchoBoton, altoBoton);
+            btn.setBounds(0, 0, anchoBoton, altoBoton);
+
+            // Acción al hacer clic
             btn.addActionListener(e -> abrirVentanaVertice(nombre));
+
             botonesVer.insertLast(btn);
             panel.add(btn);
             panel.repaint();
         }
     }
+
 
     private void abrirVentanaVertice(String nombre) {
         JFrame ventana = new JFrame("vertice: " + nombre);
@@ -116,7 +150,7 @@ public class Interfaz extends JFrame {
 
     private void agregarArista() throws ItemNotFound {
         if (vertices.length() < 2) {
-            JOptionPane.showMessageDialog(this, "Agrega al menos dos vertices.");
+            JOptionPane.showMessageDialog(this, "Agrega al menos dos vertices");
             return;
         }
 
@@ -124,17 +158,39 @@ public class Interfaz extends JFrame {
         for(int i = 0; i<vs.length; i++){
             vs[i] = vertices.getNodeAtIndex(i);
         }
-        // 94 - 95 -> toArray
+
         String origen = (String) JOptionPane.showInputDialog(this, "Origen:", "Vertices", JOptionPane.PLAIN_MESSAGE, null, vs, null);
         String destino = (String) JOptionPane.showInputDialog(this, "Destino:", "Vertices", JOptionPane.PLAIN_MESSAGE, null, vs, null);
 
         if (origen == null || destino == null) return;
 
-        int peso = 1;
-        try {
-            peso = Integer.parseInt(JOptionPane.showInputDialog(this, "Ingrese el peso de la arista:"));
-        } catch (NumberFormatException e) {
-            JOptionPane.showMessageDialog(this, "Peso invalido. Se usara 1");
+        for (int i = 0; i < aristas.length(); i++) {
+            AristaGrafica existente = aristas.getNodeAtIndex(i);
+            if (existente.origen.equals(origen) && existente.destino.equals(destino)) {
+                JOptionPane.showMessageDialog(this,
+                        "Ya existe una arista desde " + origen + " hacia " + destino + ".");
+                return;
+            }
+        }
+
+        // Verificar si ya existe la arista inversa
+        int peso = -1;
+        for (int i = 0; i < aristas.length(); i++) {
+            AristaGrafica otra = aristas.getNodeAtIndex(i);
+            if (otra.origen.equals(destino) && otra.destino.equals(origen)) {
+                peso = otra.peso; // reutiliza el mismo peso
+                JOptionPane.showMessageDialog(this, "Se reutiliza el peso " + peso + " de la arista inversa " + destino + " → " + origen);
+                break;
+            }
+        }
+
+        if (peso == -1) {
+            try {
+                peso = Integer.parseInt(JOptionPane.showInputDialog(this, "Ingrese el peso de la arista:"));
+            } catch (NumberFormatException e) {
+                JOptionPane.showMessageDialog(this, "Peso inválido. Se usará 1");
+                peso = 1;
+            }
         }
 
         controller.connectZones(origen, destino, peso);
