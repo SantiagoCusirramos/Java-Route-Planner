@@ -117,36 +117,49 @@ public class Controller {
 	public LinkedList<String> getAllZones() {
 		return urbanGraph.getVertices(); // Asegúrate que este método retorna una lista de Strings
 	}
+// ==================== GESTIÓN DE RUTAS ENTRE ZONAS ====================
 
-
-	// ==================== GESTIÓN DE RUTAS ====================
-
-	//conecta 2 zonas con una ruta
+	// Conecta dos zonas con una ruta de peso por defecto
 	public boolean connectZones(String zone1, String zone2) throws ItemNotFound {
 		return connectZones(zone1, zone2, 1); // Peso por defecto
 	}
 
-
-	//ruta con peso
+	// Conecta dos zonas con un peso especificado
 	public boolean connectZones(String zone1, String zone2, int weight) throws ItemNotFound {
-		if (!urbanGraph.searchVertex(zone1)) {
-			throw new ItemNotFound("La zona origen '" + zone1 + "' no existe");
+		if (zone1 == null || zone2 == null || zone1.isEmpty() || zone2.isEmpty()) {
+			throw new IllegalArgumentException("Los nombres de las zonas no pueden estar vacíos.");
 		}
+
+		if (!urbanGraph.searchVertex(zone1)) {
+			throw new ItemNotFound("La zona origen '" + zone1 + "' no existe.");
+		}
+
 		if (!urbanGraph.searchVertex(zone2)) {
-			throw new ItemNotFound("La zona destino '" + zone2 + "' no existe");
+			throw new ItemNotFound("La zona destino '" + zone2 + "' no existe.");
+		}
+
+		if (urbanGraph.searchEdge(zone1, zone2, -1)) {
+			// Ya existe una conexión entre ambas zonas
+			return false;
 		}
 
 		urbanGraph.insertEdge(zone1, zone2, weight);
 		operationStack.push("CONNECT:" + zone1 + "->" + zone2 + ":" + weight);
-
 		return true;
 	}
 
-
-	//desconecta 2 zonas
+	// Desconecta dos zonas si existe una conexión
 	public boolean disconnectZones(String zone1, String zone2) throws ItemNotFound {
+		if (zone1 == null || zone2 == null || zone1.isEmpty() || zone2.isEmpty()) {
+			throw new IllegalArgumentException("Los nombres de las zonas no pueden estar vacíos.");
+		}
+
 		if (!urbanGraph.searchVertex(zone1) || !urbanGraph.searchVertex(zone2)) {
-			throw new ItemNotFound("Una o ambas zonas no existen en el sistema");
+			throw new ItemNotFound("Una o ambas zonas no existen en el sistema.");
+		}
+
+		if (!urbanGraph.searchEdge(zone1, zone2, -1)) {
+			throw new ItemNotFound("No existe una conexión entre '" + zone1 + "' y '" + zone2 + "'.");
 		}
 
 		boolean removed = urbanGraph.removeEdge(zone1, zone2);
@@ -157,11 +170,15 @@ public class Controller {
 		return removed;
 	}
 
-
-	//verifica si las zonas estan conectadas
+	// Verifica si dos zonas están conectadas (con cualquier peso)
 	public boolean areZonesConnected(String zone1, String zone2) {
-		return urbanGraph.searchEdge(zone1, zone2, -1);
+		if (zone1 == null || zone2 == null || zone1.isEmpty() || zone2.isEmpty()) {
+			return false;
+		}
+
+		return urbanGraph.searchEdge(zone1, zone2, -1); // -1: ignora peso
 	}
+
 
 	// ==================== BÚSQUEDA DE RUTAS AVANZADA ====================
 
