@@ -379,14 +379,13 @@ public class BTree<E extends Comparable<E>> {
 
         for (int i = 0; i < node.count; i++) {
             for (int j = 0; j < level; j++) sb.append("   ");
-            sb.append("- ").append(node.keys.get(i)).append("\n");
+            sb.append("- ").append(node.keys[i]).append("\n");
         }
 
         for (int i = 0; i <= node.count; i++) {
-            toStructuredString(node.childs.get(i), sb, level + 1);
+            toStructuredString(node.childs[i], sb, level + 1);
         }
     }
-
 }
 
 
