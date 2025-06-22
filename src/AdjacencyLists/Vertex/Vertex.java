@@ -30,6 +30,10 @@ public class Vertex<E> {
         this.visited = visited;
     }
 
+    public void setData(E data) {
+        this.data = data;
+    }
+
     public boolean equals(Object o){
         if (o instanceof Vertex<?>) {
             Vertex<E> v = (Vertex<E>) o;

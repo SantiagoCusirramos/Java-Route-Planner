@@ -585,4 +585,11 @@ public class GraphLink<E> {
         return false;
     }
 
+    public void renameVertex(E oldName, E newName) {
+        Vertex<E> vertex = findVertex(oldName);
+        if (vertex != null) {
+            vertex.setData(newName);
+        }
+    }
+
 }
