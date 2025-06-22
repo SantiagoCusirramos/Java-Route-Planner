@@ -8,7 +8,7 @@ import DataStructure.Queue.LinkedQueue;
 import DataStructure.Stack.LinkedStack;
 import DataStructure.Node.Node;
 
-public class GraphLink<E> {
+public class GraphLink<E extends Vertex<E>> {
     public LinkedList<Vertex<E>> listVertex; // lista de vertices, estos son los que bajan
     protected boolean isDirected; // dirigido o no
     protected boolean isWeighted; // peso o no
@@ -453,32 +453,50 @@ public class GraphLink<E> {
         return false;
     }
 
-    public boolean esCiclo(LinkedList<E> nodos) {
-        if (!esCamino(nodos) || nodos.length() < 3) { // Vemos si es camino, si lo es F, no sera ciclo
+    public boolean esCiclo(Vertex<E> startVertex) throws ExceptionIsEmpty {
+        if (startVertex == null) {
             return false;
         }
 
-        E primero = nodos.getNodeAtIndex(0);
-        E ultimo = nodos.getNodeAtIndex(nodos.length() - 1);
+        resetVisitedFlags();
+        LinkedStack<Vertex<E>> stack = new LinkedStack<>();
+        LinkedStack<Vertex<E>> path = new LinkedStack<>();
 
-        if (!primero.equals(ultimo)) {
-            return false;
-        }
-
-        LinkedList<E> nodosIntermedios = new LinkedList<E>();
-        for (int i = 1; i < nodos.length() - 1; i++) {
-            E nodo = nodos.getNodeAtIndex(i);
-
-            if (nodosIntermedios.search(nodo)) {
-                return false;
-            }
-            nodosIntermedios.insertLast(nodo);
-        }
-
-        return true;
+        return detectCycleDFS(startVertex, null, stack, path);
     }
 
-    public boolean esRueda(LinkedList<E> nodos) {
+    private boolean detectCycleDFS(Vertex<E> current, Vertex<E> parent,
+                                   LinkedStack<Vertex<E>> stack, LinkedStack<Vertex<E>> path) throws ExceptionIsEmpty {
+        current.setVisited(true);
+        stack.push(current);
+        path.push(current);
+
+        Node<Edge<E>> edgeNode = current.getListAdj().getHead();
+        while (edgeNode != null) {
+            Vertex<E> neighbor = edgeNode.getData().getRefDest();
+
+            if (!neighbor.isVisited()) {
+                if (detectCycleDFS(neighbor, current, stack, path)) {
+                    return true;
+                }
+            }
+            // Si el vecino ya fue visitado y no es el padre, hay un ciclo
+            else if (!neighbor.equals(parent)) {
+                // Verificar si el ciclo incluye al vértice inicial
+                if (!path.isEmpty() && path.top().equals(neighbor)) {
+                    return true;
+                }
+            }
+            edgeNode = edgeNode.getNext();
+        }
+
+        stack.pop();
+        path.pop();
+
+        return false;
+    }
+
+    public boolean esRueda(LinkedList<E> nodos) throws ExceptionIsEmpty {
         if (nodos == null || nodos.length() < 4) {
             return false;
         }
@@ -500,16 +518,41 @@ public class GraphLink<E> {
             return false;
         }
 
-        LinkedList<E> nodosCiclo = new LinkedList<E>();
+        LinkedList<Vertex<E>> verticesCiclo = new LinkedList<>();
         current = nodos.getHead();
+
         while (current != null) {
             if (!current.getData().equals(centro.getData())) {
-                nodosCiclo.insertLast(current.getData());
+                Vertex<E> v = findVertex(current.getData());
+                if (v == null || !sonAdyacentes(v, centro)) {
+                    return false;
+                }
+                verticesCiclo.insertLast(v);
             }
             current = current.getNext();
         }
 
-        return esCiclo(nodosCiclo);
+        if (verticesCiclo.length() < 3) {
+            return false;
+        }
+
+        Vertex<E> first = verticesCiclo.getHead().getData();
+        Vertex<E> last = verticesCiclo.getNodeAtIndex(verticesCiclo.length() - 1).getData();
+
+        boolean hadEdge = sonAdyacentes(first, last);
+
+        if (!hadEdge) {
+            insertEdge(first.getData(), last.getData());
+        }
+
+        boolean esUnCiclo = esCiclo(first);
+
+        if (!hadEdge) {
+
+            removeEdge(first.getData(), last.getData());
+        }
+
+        return esUnCiclo;
     }
 
     public boolean esCompleto() {

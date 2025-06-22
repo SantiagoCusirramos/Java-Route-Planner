@@ -309,8 +309,8 @@ public class Controller {
 	 * @param zonePath Ruta de zonas para verificar
 	 * @return true si es un ciclo válido
 	 */
-	public boolean isValidCycle(LinkedList<String> zonePath) {
-		return urbanGraph.esCiclo(zonePath);
+	public boolean isValidCycle(String zonePath) {
+		return urbanGraph.esCiclo(urbanGraph.findVertex(zonePath));
 	}
 
 	/**

@@ -453,14 +453,12 @@ public class Interfaz extends JFrame {
         }
 
         String input = JOptionPane.showInputDialog(this,
-                "Ingrese zonas separadas por coma (ej: A,B,C,A):");
-        if (input == null || input.trim().isEmpty()) return;
+                "Ingrese la zoan seleccionada");
+        if (input == null || input.trim().isEmpty()) {
+            return;
+        }
 
-        String[] zonas = input.split(",");
-        LinkedList<String> ruta = new LinkedList<>();
-        for (String z : zonas) ruta.insertLast(z.trim());
-
-        boolean esCiclo = controller.isValidCycle(ruta);
+        boolean esCiclo = controller.isValidCycle(input);
         JOptionPane.showMessageDialog(this,
                 esCiclo ? "Es un ciclo válido." : "No es un ciclo válido.");
     }
