@@ -7,6 +7,7 @@ import Controller.Controller;
 import DataStructure.LinkedList.LinkedList;
 import Exceptions.ItemDuplicated;
 import Exceptions.ItemNotFound;
+import Controller.Zona;
 
 public class Interfaz extends JFrame {
     private Controller controller;
@@ -115,23 +116,13 @@ public class Interfaz extends JFrame {
     }
 
     private void abrirVentanaVertice(String nombre) throws ItemNotFound {
-        JFrame ventana = new JFrame("Árbol B+ de zona: " + nombre);
-        ventana.setSize(400, 300);
-        ventana.setLocationRelativeTo(this);
-
-        JTextArea area = new JTextArea();
-        area.setEditable(false);
-
-        String arbolTexto = null; // debes implementar esto
-        try {
-            arbolTexto = controller.getZoneBPlusTreeAsString(nombre);
-        } catch (ItemNotFound e) {
-            throw new RuntimeException(e);
+        Zona zona = controller.buscarZona(nombre);
+        if (zona == null) {
+            JOptionPane.showMessageDialog(this, "Zona no encontrada.");
+            return;
         }
-        area.setText(arbolTexto);
 
-        JScrollPane scroll = new JScrollPane(area);
-        ventana.add(scroll);
+        InterfazArbol ventana = new InterfazArbol(zona);
         ventana.setVisible(true);
     }
 

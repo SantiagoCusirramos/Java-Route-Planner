@@ -396,7 +396,7 @@ public class Controller {
 	 * @param zoneName Nombre de la zona a buscar
 	 * @return Zona si existe, null en otro caso
 	 */
-	private Zona buscarZona(String zoneName) {
+	public Zona buscarZona(String zoneName) {
 		for (int i = 0; i < zones.length(); i++) {
 			Zona zona = zones.getNodeAtIndex(i);
 			if (zona.getNombre().equalsIgnoreCase(zoneName)) {

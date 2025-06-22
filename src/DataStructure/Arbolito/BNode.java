@@ -22,6 +22,10 @@ public class BNode<E extends Comparable<E>> {
         return count == 0;
     }
 
+    public E[] getKeys() { return keys; }
+
+    public BNode<E>[] getChilds() { return childs; }
+
     public boolean searchNode(E data, int[] pos) {
         int i = 0;
 
