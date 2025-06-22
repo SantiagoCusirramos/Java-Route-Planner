@@ -190,6 +190,17 @@ public class LinkedList<T> {
         return true;
     }
 
+    public Object[] toArray() {
+        Object[] array = new Object[countNodes];
+        Node<T> current = head;
+        int i = 0;
+        while (current != null) {
+            array[i++] = current.getData();
+            current = current.getNext();
+        }
+        return array;
+    }
+
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
