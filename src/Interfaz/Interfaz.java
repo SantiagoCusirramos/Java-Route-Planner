@@ -250,18 +250,18 @@ public class Interfaz extends JFrame {
             return;
         }
 
-        if (controller.updateEdgeWeight(origen, destino, nuevoPeso)) {
-            // actualiza en la lista gráfica
+        try {
+            controller.updateEdgeWeight(origen, destino, nuevoPeso);
             for (int i = 0; i < aristas.length(); i++) {
                 AristaGrafica a = aristas.getNodeAtIndex(i);
-                if (a.origen.equals(origen) && a.destino.equals(destino)) {
+                if ((a.origen.equals(origen) && a.destino.equals(destino)) ||
+                        (a.origen.equals(destino) && a.destino.equals(origen))) {
                     a.peso = nuevoPeso;
-                    break;
                 }
             }
             panel.repaint();
-        } else {
-            JOptionPane.showMessageDialog(this, "No se encontró la arista.");
+        } catch (ItemNotFound ex) {
+            JOptionPane.showMessageDialog(this, "No se encontró la arista para modificar.");
         }
     }
 
@@ -401,8 +401,8 @@ public class Interfaz extends JFrame {
 
                 // → "50" es cuántos píxeles avanzas desde el origen
                 // → "10" es el desplazamiento perpendicular
-                int px=(int)(p1.x+ux*70+nx*10);
-                int py=(int)(p1.y+uy*70+ny*10);
+                int px=(int)(p1.x+ux*70+nx*20);
+                int py=(int)(p1.y+uy*70+ny*20);
                 String s=String.valueOf(a.peso);
                 FontMetrics fm2=g2.getFontMetrics();
                 int w=fm2.stringWidth(s),h=fm2.getHeight();

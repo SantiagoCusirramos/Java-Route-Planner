@@ -140,19 +140,18 @@ public class Controller {
 	 * @throws ItemNotFound si alguna zona no existe
 	 */
 	public boolean disconnectZones(String zone1, String zone2) throws ItemNotFound {
-		if (zone1 == null || zone2 == null || zone1.isEmpty() || zone2.isEmpty()) {
-			throw new IllegalArgumentException("Los nombres de las zonas no pueden estar vacíos.");
-		}
-
 		if (!urbanGraph.searchVertex(zone1) || !urbanGraph.searchVertex(zone2)) {
-			throw new ItemNotFound("Una o ambas zonas no existen en el sistema.");
+			throw new ItemNotFound("Una o ambas zonas no existen.");
 		}
 
-		if (!urbanGraph.searchEdge(zone1, zone2, -1)) {
-			throw new ItemNotFound("No existe conexión entre '" + zone1 + "' y '" + zone2 + "'.");
+		boolean removed1 = urbanGraph.removeEdge(zone1, zone2);
+		boolean removed2 = urbanGraph.removeEdge(zone2, zone1);
+
+		if (!removed1 && !removed2) {
+			throw new ItemNotFound("No existe la arista en ninguna dirección.");
 		}
 
-		return urbanGraph.removeEdge(zone1, zone2);
+		return true;
 	}
 
 	public boolean updateEdgeWeight(String zone1, String zone2, int newWeight) throws ItemNotFound {
@@ -160,8 +159,16 @@ public class Controller {
 			throw new ItemNotFound("Una o ambas zonas no existen.");
 		}
 
-		return urbanGraph.modifyEdgeWeight(zone1, zone2, newWeight);
+		boolean updated1 = urbanGraph.modifyEdgeWeight(zone1, zone2, newWeight);
+		boolean updated2 = urbanGraph.modifyEdgeWeight(zone2, zone1, newWeight); // el otro sentido
+
+		if (!updated1 && !updated2) {
+			throw new ItemNotFound("La arista no existe en ninguna dirección.");
+		}
+
+		return true;
 	}
+
 
 	// ==================== BÚSQUEDA DE RUTAS ====================
 	/**
