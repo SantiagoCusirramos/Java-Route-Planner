@@ -15,7 +15,7 @@ public class InterfazArbol extends JFrame {
     private final Zona zona;
 
     public InterfazArbol(Controller controller, Zona zona) {
-        super("Árbol B+ de " + zona.getNombre());
+        super("Árbol B de " + zona.getNombre());
         this.controller = controller;
         this.zona = zona;
 
