@@ -309,7 +309,7 @@ public class Controller {
 	 * @param zonePath Ruta de zonas para verificar
 	 * @return true si es un ciclo válido
 	 */
-	public boolean isValidCycle(String zonePath) {
+	public boolean isValidCycle(String zonePath) throws ExceptionIsEmpty {
 		return urbanGraph.esCiclo(urbanGraph.findVertex(zonePath));
 	}
 

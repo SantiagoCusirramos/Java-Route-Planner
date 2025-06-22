@@ -8,7 +8,7 @@ import DataStructure.Queue.LinkedQueue;
 import DataStructure.Stack.LinkedStack;
 import DataStructure.Node.Node;
 
-public class GraphLink<E extends Vertex<E>> {
+public class GraphLink<E> {
     public LinkedList<Vertex<E>> listVertex; // lista de vertices, estos son los que bajan
     protected boolean isDirected; // dirigido o no
     protected boolean isWeighted; // peso o no
@@ -480,9 +480,9 @@ public class GraphLink<E extends Vertex<E>> {
                     return true;
                 }
             }
-            // Si el vecino ya fue visitado y no es el padre, hay un ciclo
+
             else if (!neighbor.equals(parent)) {
-                // Verificar si el ciclo incluye al vértice inicial
+
                 if (!path.isEmpty() && path.top().equals(neighbor)) {
                     return true;
                 }
@@ -496,7 +496,32 @@ public class GraphLink<E extends Vertex<E>> {
         return false;
     }
 
-    public boolean esRueda(LinkedList<E> nodos) throws ExceptionIsEmpty {
+    public boolean esCicloAUX(LinkedList<E> nodos) {
+        if (!esCamino(nodos) || nodos.length() < 3) { // Vemos si es camino, si lo es F, no sera ciclo
+            return false;
+        }
+
+        E primero = nodos.getNodeAtIndex(0);
+        E ultimo = nodos.getNodeAtIndex(nodos.length() - 1);
+
+        if (!primero.equals(ultimo)) {
+            return false;
+        }
+
+        LinkedList<E> nodosIntermedios = new LinkedList<E>();
+        for (int i = 1; i < nodos.length() - 1; i++) {
+            E nodo = nodos.getNodeAtIndex(i);
+
+            if (nodosIntermedios.search(nodo)) {
+                return false;
+            }
+            nodosIntermedios.insertLast(nodo);
+        }
+
+        return true;
+    }
+
+    public boolean esRueda(LinkedList<E> nodos) {
         if (nodos == null || nodos.length() < 4) {
             return false;
         }
@@ -518,41 +543,16 @@ public class GraphLink<E extends Vertex<E>> {
             return false;
         }
 
-        LinkedList<Vertex<E>> verticesCiclo = new LinkedList<>();
+        LinkedList<E> nodosCiclo = new LinkedList<E>();
         current = nodos.getHead();
-
         while (current != null) {
             if (!current.getData().equals(centro.getData())) {
-                Vertex<E> v = findVertex(current.getData());
-                if (v == null || !sonAdyacentes(v, centro)) {
-                    return false;
-                }
-                verticesCiclo.insertLast(v);
+                nodosCiclo.insertLast(current.getData());
             }
             current = current.getNext();
         }
 
-        if (verticesCiclo.length() < 3) {
-            return false;
-        }
-
-        Vertex<E> first = verticesCiclo.getHead().getData();
-        Vertex<E> last = verticesCiclo.getNodeAtIndex(verticesCiclo.length() - 1).getData();
-
-        boolean hadEdge = sonAdyacentes(first, last);
-
-        if (!hadEdge) {
-            insertEdge(first.getData(), last.getData());
-        }
-
-        boolean esUnCiclo = esCiclo(first);
-
-        if (!hadEdge) {
-
-            removeEdge(first.getData(), last.getData());
-        }
-
-        return esUnCiclo;
+        return esCicloAUX(nodosCiclo);
     }
 
     public boolean esCompleto() {

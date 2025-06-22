@@ -120,7 +120,13 @@ public class Interfaz extends JFrame {
 
         JButton btnDetectarCiclo = new JButton("Detectar ciclo");
         estiloBoton(btnDetectarCiclo, new Color(59, 89, 182), Color.WHITE, 150, 40);
-        btnDetectarCiclo.addActionListener(e -> detectarCiclo());
+        btnDetectarCiclo.addActionListener(e -> {
+            try {
+                detectarCiclo();
+            } catch (ExceptionIsEmpty ex) {
+                throw new RuntimeException(ex);
+            }
+        });
 
         JButton btnConexas = new JButton("Componentes conexas");
         estiloBoton(btnConexas, new Color(59, 89, 182), Color.WHITE, 170, 40);
@@ -446,7 +452,7 @@ public class Interfaz extends JFrame {
         }
     }
 
-    private void detectarCiclo() {
+    private void detectarCiclo() throws ExceptionIsEmpty {
         if (vertices.length() < 3) {
             JOptionPane.showMessageDialog(this, "Agrega al menos 3 zonas para detectar un ciclo.");
             return;
