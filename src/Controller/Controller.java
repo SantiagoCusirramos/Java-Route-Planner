@@ -6,35 +6,33 @@ import DataStructure.LinkedList.LinkedList;
 import DataStructure.Queue.LinkedQueue;
 import DataStructure.Stack.LinkedStack;
 import Tours.Dijkstra.Dijkstra;
+import Tours.BFS.BFS;
 import Exceptions.ExceptionIsEmpty;
 import Exceptions.ItemNotFound;
 import Exceptions.ItemDuplicated;
-
 
 public class Controller {
 	private GraphLink<String> urbanGraph;
 	private LinkedList<Zona> zones;
 	private LinkedQueue<String> routeHistory;
-	private LinkedStack<String> operationStack;
 
+	// Parámetros del sistema
+	private static final int ORDEN_ARBOL = 4;  // Orden del árbol B+ para cada zona
 
-	// ===================== GESTIÓN DE ZONAS COMO DISTRITOS =====================
-
-
-	private final int ordenArbolDistrito = 4; // orden del árbol B para cada distrito
-
-	// ===========================================================================
-
+	// Constructor principal
 	public Controller() {
-		this.urbanGraph = new GraphLink<>(true, true); // No dirigido, con pesos
+		this.urbanGraph = new GraphLink<>(true, true); // Grafo dirigido y ponderado
 		this.zones = new LinkedList<>();
 		this.routeHistory = new LinkedQueue<>();
-		this.operationStack = new LinkedStack<>();
 	}
 
 	// ==================== GESTIÓN DE ZONAS ====================
-
-	// Se añade una nueva zona al sistema
+	/**
+	 * Agrega una nueva zona al sistema
+	 * @param zoneName Nombre de la zona a agregar
+	 * @return true si se agrega correctamente, false si ya existe
+	 * @throws ItemDuplicated si la zona ya existe
+	 */
 	public boolean addZone(String zoneName) throws ItemDuplicated {
 		if (zoneName == null || zoneName.trim().isEmpty()) {
 			return false;
@@ -44,54 +42,52 @@ public class Controller {
 			throw new ItemDuplicated("La zona '" + zoneName + "' ya existe en el sistema");
 		}
 
+		// Agregar al grafo urbano
 		urbanGraph.insertVertex(zoneName);
 
-		// Crear zona con orden del árbol B (ajusta según necesidad, por ejemplo, 4)
-		Zona nuevaZona = new Zona(zoneName, 4);
-		zones.insertLast(nuevaZona); // <-- ahora guarda la Zona, no solo el nombre
-
-		// Registrar operación
-		operationStack.push("ADD_ZONE:" + zoneName);
+		// Crear zona con su árbol B+
+		Zona nuevaZona = new Zona(zoneName, ORDEN_ARBOL);
+		zones.insertLast(nuevaZona);
 
 		return true;
 	}
+
+	/**
+	 * Elimina una zona del sistema
+	 * @param zoneName Nombre de la zona a eliminar
+	 * @return true si se elimina correctamente
+	 * @throws ItemNotFound si la zona no existe
+	 */
 	public boolean removeZone(String zoneName) throws ItemNotFound {
 		if (zoneName == null || zoneName.isEmpty()) {
 			throw new IllegalArgumentException("El nombre de la zona no puede estar vacío.");
 		}
 
-		// Verificar si existe en el grafo
 		if (!urbanGraph.searchVertex(zoneName)) {
 			throw new ItemNotFound("La zona '" + zoneName + "' no existe en el grafo urbano.");
 		}
 
 		// Eliminar del grafo
 		boolean removedFromGraph = urbanGraph.removeVertex(zoneName);
-		boolean removedFromList = false;
 
-		// Buscar índice de la zona en la lista y eliminarla
+		// Eliminar de la lista de zonas
+		boolean removedFromList = false;
 		for (int i = 0; i < zones.length(); i++) {
 			Zona zona = zones.getNodeAtIndex(i);
 			if (zona.getNombre().equalsIgnoreCase(zoneName)) {
-				removedFromList = zones.removeAtIndex(i);
+				zones.removeAtIndex(i);
+				removedFromList = true;
 				break;
 			}
 		}
 
-		if (removedFromGraph && removedFromList) {
-			operationStack.push("REMOVE_ZONE:" + zoneName);
-			return true;
-		} else {
-			throw new ItemNotFound("Error al eliminar la zona '" + zoneName + "' del sistema.");
-		}
+		return removedFromGraph && removedFromList;
 	}
 
-
 	/**
-	 * Verifica si una zona existe en el sistema.
-	 *
-	 * @param zoneName El nombre de la zona a verificar.
-	 * @return true si la zona existe en el grafo urbano; false en caso contrario.
+	 * Verifica si una zona existe en el sistema
+	 * @param zoneName Nombre de la zona a verificar
+	 * @return true si la zona existe
 	 */
 	public boolean zoneExists(String zoneName) {
 		if (zoneName == null || zoneName.isEmpty()) return false;
@@ -99,16 +95,22 @@ public class Controller {
 	}
 
 	/**
-	 * Retorna una lista de todos los nombres de zonas (vértices) presentes en el grafo.
-	 *
-	 * @return LinkedList de nombres de zonas.
+	 * Obtiene todas las zonas del sistema
+	 * @return Lista de nombres de zonas
 	 */
 	public LinkedList<String> getAllZones() {
-		return urbanGraph.getVertices(); // Asegúrate que este método retorna una lista de Strings
+		return urbanGraph.getVertices();
 	}
-// ==================== GESTIÓN DE RUTAS ENTRE ZONAS ====================
 
-	// Conecta dos zonas con un peso especificado
+	// ==================== GESTIÓN DE RUTAS ENTRE ZONAS ====================
+	/**
+	 * Conecta dos zonas con un peso específico
+	 * @param zone1 Zona de origen
+	 * @param zone2 Zona de destino
+	 * @param weight Peso de la conexión
+	 * @return true si se conecta correctamente
+	 * @throws ItemNotFound si alguna zona no existe
+	 */
 	public boolean connectZones(String zone1, String zone2, int weight) throws ItemNotFound {
 		if (zone1 == null || zone2 == null || zone1.isEmpty() || zone2.isEmpty()) {
 			throw new IllegalArgumentException("Los nombres de las zonas no pueden estar vacíos.");
@@ -123,16 +125,20 @@ public class Controller {
 		}
 
 		if (urbanGraph.searchEdge(zone1, zone2, -1)) {
-			// Ya existe una conexión entre ambas zonas
-			return false;
+			return false; // Ya existe conexión
 		}
 
 		urbanGraph.insertEdge(zone1, zone2, weight);
-		operationStack.push("CONNECT:" + zone1 + "->" + zone2 + ":" + weight);
 		return true;
 	}
 
-	// Desconecta dos zonas si existe una conexión
+	/**
+	 * Desconecta dos zonas si existe una conexión
+	 * @param zone1 Zona de origen
+	 * @param zone2 Zona de destino
+	 * @return true si se desconecta correctamente
+	 * @throws ItemNotFound si alguna zona no existe
+	 */
 	public boolean disconnectZones(String zone1, String zone2) throws ItemNotFound {
 		if (zone1 == null || zone2 == null || zone1.isEmpty() || zone2.isEmpty()) {
 			throw new IllegalArgumentException("Los nombres de las zonas no pueden estar vacíos.");
@@ -143,217 +149,79 @@ public class Controller {
 		}
 
 		if (!urbanGraph.searchEdge(zone1, zone2, -1)) {
-			throw new ItemNotFound("No existe una conexión entre '" + zone1 + "' y '" + zone2 + "'.");
+			throw new ItemNotFound("No existe conexión entre '" + zone1 + "' y '" + zone2 + "'.");
 		}
 
-		boolean removed = urbanGraph.removeEdge(zone1, zone2);
-		if (removed) {
-			operationStack.push("DISCONNECT:" + zone1 + "->" + zone2);
-		}
-
-		return removed;
+		return urbanGraph.removeEdge(zone1, zone2);
 	}
 
-	// ==================== BÚSQUEDA DE RUTAS AVANZADA ====================
+	// ==================== BÚSQUEDA DE RUTAS ====================
+	/**
+	 * Encuentra la ruta más corta entre dos zonas usando Dijkstra
+	 * @param origin Zona de origen
+	 * @param destination Zona de destino
+	 * @return Lista de zonas que forman la ruta más corta
+	 * @throws ItemNotFound si alguna zona no existe
+	 * @throws ExceptionIsEmpty si no hay ruta
+	 */
+	public LinkedList<String> findShortestPath(String origin, String destination)
+			throws ItemNotFound, ExceptionIsEmpty {
 
-
-	//camino mas corto entre 2 zonas usando dijkstra
-	public LinkedList<String> findShortestPath(String origin, String destination) throws ItemNotFound, ExceptionIsEmpty {
 		if (!urbanGraph.searchVertex(origin)) {
 			throw new ItemNotFound("La zona origen '" + origin + "' no existe");
 		}
+
 		if (!urbanGraph.searchVertex(destination)) {
 			throw new ItemNotFound("La zona destino '" + destination + "' no existe");
 		}
 
-		// Usar algoritmo de Dijkstra mejorado
 		LinkedList<String> path = Dijkstra.shortestPath(urbanGraph, origin, destination);
-
 		if (path != null && !path.isEmpty()) {
-			// Guardar en historial
 			String routeRecord = origin + " -> " + destination + " (Dijkstra)";
 			routeHistory.enqueue(routeRecord);
-			operationStack.push("DIJKSTRA_ROUTE:" + routeRecord);
 		}
 
 		return path;
 	}
 
-	//encuentra cualquier camino entre 2 zonas usando bfs
-	public LinkedList<String> findPath(String origin, String destination) throws ItemNotFound, ExceptionIsEmpty {
+	/**
+	 * Encuentra cualquier camino entre dos zonas usando BFS
+	 * @param origin Zona de origen
+	 * @param destination Zona de destino
+	 * @return Lista de zonas que forman el camino
+	 * @throws ItemNotFound si alguna zona no existe
+	 * @throws ExceptionIsEmpty si no hay camino
+	 */
+	public LinkedList<String> findPath(String origin, String destination)
+			throws ItemNotFound, ExceptionIsEmpty {
+
 		if (!urbanGraph.searchVertex(origin)) {
 			throw new ItemNotFound("La zona origen '" + origin + "' no existe");
 		}
+
 		if (!urbanGraph.searchVertex(destination)) {
 			throw new ItemNotFound("La zona destino '" + destination + "' no existe");
 		}
 
-		LinkedList<String> path = urbanGraph.bfsPath(origin, destination);
+		BFS<String> bfs = new BFS<>();
+		LinkedList<String> path = bfs.bfsPath(urbanGraph, origin, destination);
 
-		if (path != null) {
+		if (path != null && !path.isEmpty()) {
 			String routeRecord = origin + " -> " + destination + " (BFS)";
 			routeHistory.enqueue(routeRecord);
-			operationStack.push("BFS_ROUTE:" + routeRecord);
 		}
 
 		return path;
 	}
 
-	//encuentra el camino más corto usando dijkstra
-	public LinkedStack<String> findShortestPathStack(String origin, String destination) throws ItemNotFound, ExceptionIsEmpty {
-		if (!urbanGraph.searchVertex(origin)) {
-			throw new ItemNotFound("La zona origen '" + origin + "' no existe");
-		}
-		if (!urbanGraph.searchVertex(destination)) {
-			throw new ItemNotFound("La zona destino '" + destination + "' no existe");
-		}
-
-		// Usar la clase Dijkstra externa
-		LinkedList<String> pathList = Dijkstra.shortestPath(urbanGraph, origin, destination);
-
-		if (pathList == null || pathList.isEmpty()) {
-			return null;
-		}
-
-		// Convertir LinkedList a LinkedStack
-		LinkedStack<String> pathStack = new LinkedStack<>();
-
-		try {
-			// Crear un stack temporal para manejar el orden
-			LinkedStack<String> tempStack = new LinkedStack<>();
-
-			// Si LinkedList tiene getNode(index):
-			for (int i = 0; i < pathList.length(); i++) {
-				String vertex = pathList.getNodeAtIndex(i);
-				tempStack.push(vertex);
-			}
-
-			// Invertir el orden para el stack final
-			while (!tempStack.isEmpty()) {
-				pathStack.push(tempStack.pop());
-			}
-
-			String routeRecord = origin + " -> " + destination + " (Dijkstra External Stack)";
-			routeHistory.enqueue(routeRecord);
-			operationStack.push("DIJKSTRA_EXTERNAL_STACK:" + routeRecord);
-
-		} catch (Exception e) {
-			throw new ExceptionIsEmpty("Error al procesar el camino de Dijkstra");
-		}
-
-		return pathStack;
-	}
-
-	// ==================== ANÁLISIS DE ZONAS ====================
-
-
-	//grafo de conectividad de una zona
-	public int getZoneConnectivity(String zoneName) throws ItemNotFound {
-		if (!urbanGraph.searchVertex(zoneName)) {
-			throw new ItemNotFound("La zona '" + zoneName + "' no existe");
-		}
-
-		return urbanGraph.gradoNodo(zoneName);
-	}
-
-	//verifica si el sistema esta conectado
-	public boolean isSystemConnected() {
-		return urbanGraph.isConexo();
-	}
-
-
-	//verifica si el sistema forma un grafo completo
-	public boolean isSystemComplete() {
-		return urbanGraph.esCompleto();
-	}
-
-
-	// ==================== CLASES AUXILIARES ====================
-
-
-	//Clase para almacenar resultados de comparación de algoritmos de ruteo
-	public static class RouteComparisonResult {
-		private LinkedList<String> bfsPath;
-		private LinkedList<String> dijkstraPath;
-		private LinkedList<String> internalPath;
-		private long bfsTime;
-		private long dijkstraTime;
-		private long internalTime;
-
-		// Getters y Setters
-		public LinkedList<String> getBfsPath() { return bfsPath; }
-		public void setBfsPath(LinkedList<String> bfsPath) { this.bfsPath = bfsPath; }
-
-		public LinkedList<String> getDijkstraPath() { return dijkstraPath; }
-		public void setDijkstraPath(LinkedList<String> dijkstraPath) { this.dijkstraPath = dijkstraPath; }
-
-		public LinkedList<String> getInternalPath() { return internalPath; }
-		public void setInternalPath(LinkedList<String> internalPath) { this.internalPath = internalPath; }
-
-		public long getBfsTime() { return bfsTime; }
-		public void setBfsTime(long bfsTime) { this.bfsTime = bfsTime; }
-
-		public long getDijkstraTime() { return dijkstraTime; }
-		public void setDijkstraTime(long dijkstraTime) { this.dijkstraTime = dijkstraTime; }
-
-		public long getInternalTime() { return internalTime; }
-		public void setInternalTime(long internalTime) { this.internalTime = internalTime; }
-
-		@Override
-		public String toString() {
-			return "RouteComparisonResult{" +
-					"bfsTime=" + bfsTime + "ns, " +
-					"dijkstraTime=" + dijkstraTime + "ns, " +
-					"internalTime=" + internalTime + "ns}";
-		}
-	}
-
-	//Clase para reporte de integridad del sistema
-
-	public static class SystemIntegrityReport {
-		private boolean valid;
-		private boolean zoneConsistency;
-		private boolean connectivityStatus;
-		private boolean completeGraphStatus;
-		private int isolatedZonesCount;
-		private String errorMessage;
-
-		// Getters y Setters
-		public boolean isValid() { return valid; }
-		public void setValid(boolean valid) { this.valid = valid; }
-
-		public boolean isZoneConsistency() { return zoneConsistency; }
-		public void setZoneConsistency(boolean zoneConsistency) { this.zoneConsistency = zoneConsistency; }
-
-		public boolean isConnectivityStatus() { return connectivityStatus; }
-		public void setConnectivityStatus(boolean connectivityStatus) { this.connectivityStatus = connectivityStatus; }
-
-		public boolean isCompleteGraphStatus() { return completeGraphStatus; }
-		public void setCompleteGraphStatus(boolean completeGraphStatus) { this.completeGraphStatus = completeGraphStatus; }
-
-		public int getIsolatedZonesCount() { return isolatedZonesCount; }
-		public void setIsolatedZonesCount(int isolatedZonesCount) { this.isolatedZonesCount = isolatedZonesCount; }
-
-		public String getErrorMessage() { return errorMessage; }
-		public void setErrorMessage(String errorMessage) { this.errorMessage = errorMessage; }
-
-		@Override
-		public String toString() {
-			return "SystemIntegrityReport{" +
-					"valid=" + valid +
-					", zoneConsistency=" + zoneConsistency +
-					", connectivityStatus=" + connectivityStatus +
-					", completeGraphStatus=" + completeGraphStatus +
-					", isolatedZonesCount=" + isolatedZonesCount +
-					", errorMessage='" + errorMessage + '\'' +
-					'}';
-		}
-	}
-
-
-
-	// ==================== GESTIÓN DE DISTRITOS ====================
-
+	// ==================== GESTIÓN DE ÁRBOLES B+ ====================
+	/**
+	 * Añade un distrito (nodo) al árbol B+ de una zona
+	 * @param zoneName Zona donde se añadirá el distrito
+	 * @param districtName Nombre del distrito a añadir
+	 * @return true si se añade correctamente
+	 * @throws ItemNotFound si la zona no existe
+	 */
 	public boolean addDistrictToZone(String zoneName, String districtName) throws ItemNotFound {
 		Zona zona = buscarZona(zoneName);
 		if (zona == null) {
@@ -368,24 +236,20 @@ public class Controller {
 		}
 
 		arbol.insert(nuevo);
-		operationStack.push("ADD_DISTRICT:" + zoneName + ":" + districtName);
 		return true;
 	}
 
-	private Zona buscarZona(String zoneName) {
-		for (int i = 0; i < zones.length(); i++) {
-			Zona zona = zones.getNodeAtIndex(i);
-			if (zona.getNombre().equalsIgnoreCase(zoneName)) {
-				return zona;
-			}
-		}
-		return null;
-	}
-
+	/**
+	 * Elimina un distrito del árbol B+ de una zona
+	 * @param zoneName Zona donde se encuentra el distrito
+	 * @param districtName Nombre del distrito a eliminar
+	 * @return true si se elimina correctamente
+	 * @throws ItemNotFound si la zona o distrito no existen
+	 */
 	public boolean removeDistrictFromZone(String zoneName, String districtName) throws ItemNotFound {
 		Zona zona = buscarZona(zoneName);
 		if (zona == null) {
-			throw new ItemNotFound("La zona '" + zoneName + "' no exiasdadste.");
+			throw new ItemNotFound("La zona '" + zoneName + "' no existe.");
 		}
 
 		BTree<Punto> arbol = zona.getArbolDistrito();
@@ -396,18 +260,32 @@ public class Controller {
 		}
 
 		arbol.remove(distrito);
-		operationStack.push("REMOVE_DISTRICT:" + zoneName + ":" + districtName);
 		return true;
 	}
+
+	/**
+	 * Busca un distrito en el árbol B+ de una zona
+	 * @param zoneName Zona donde buscar
+	 * @param districtName Nombre del distrito a buscar
+	 * @return true si el distrito existe
+	 * @throws ItemNotFound si la zona no existe
+	 */
 	public boolean searchDistrictInZone(String zoneName, String districtName) throws ItemNotFound {
 		Zona zona = buscarZona(zoneName);
 		if (zona == null) {
 			throw new ItemNotFound("La zona '" + zoneName + "' no existe.");
 		}
 
-		return zona.getArbolDistrito().search(new Punto(districtName));
+		BTree<Punto> arbol = zona.getArbolDistrito();
+		Punto distrito = new Punto(districtName);
+		return arbol.search(distrito);
 	}
 
+	/**
+	 * Muestra todos los distritos de una zona
+	 * @param zoneName Zona a mostrar
+	 * @throws ItemNotFound si la zona no existe
+	 */
 	public void showDistrictsOfZone(String zoneName) throws ItemNotFound {
 		Zona zona = buscarZona(zoneName);
 		if (zona == null) {
@@ -415,180 +293,165 @@ public class Controller {
 		}
 
 		System.out.println("Distritos en la zona '" + zoneName + "':");
-		System.out.println(zona.getArbolDistrito().toString()); // Asume toString ordenado
+		System.out.println(zona.getArbolDistrito().toString());
 	}
 
-	//BUSQUEDA
+	// ==================== ANÁLISIS DEL SISTEMA ====================
 	/**
-	 * Conecta dos puntos dentro de una misma zona, asignando un peso a la conexión.
-	 *
-	 * @param zoneName nombre de la zona donde están ubicados ambos puntos.
-	 * @param pointA   nombre del punto de origen.
-	 * @param pointB   nombre del punto de destino.
-	 * @param peso     peso de la conexión (por ejemplo, distancia o tiempo).
-	 * @return true si la conexión se realizó exitosamente.
-	 * @throws ItemNotFound si la zona o alguno de los puntos no existen.
+	 * Verifica si el sistema está conectado
+	 * @return true si el grafo es conexo
 	 */
-	public boolean connectPointsInZone(String zoneName, String pointA, String pointB, int peso) throws ItemNotFound {
-		Zona zona = buscarZona(zoneName);
-		if (zona == null) throw new ItemNotFound("Zona '" + zoneName + "' no encontrada.");
+	public boolean isSystemConnected() {
+		return urbanGraph.isConexo();
+	}
 
-		BTree<Punto> arbol = zona.getArbolDistrito();
-		Punto origen = arbol.searchX(new Punto(pointA));
-		Punto destino = arbol.searchX(new Punto(pointB));
+	/**
+	 * Detecta ciclos en el grafo
+	 * @param zonePath Ruta de zonas para verificar
+	 * @return true si es un ciclo válido
+	 */
+	public boolean isValidCycle(LinkedList<String> zonePath) {
+		return urbanGraph.esCiclo(zonePath);
+	}
 
-		if (origen == null || destino == null) {
-			throw new ItemNotFound("Uno o ambos puntos no existen en la zona.");
+	/**
+	 * Obtiene las componentes conexas del grafo
+	 * @return Lista de componentes conexas
+	 */
+	public LinkedList<LinkedList<String>> getConnectedComponents() {
+		return urbanGraph.getConnectedComponents();
+	}
+
+	/**
+	 * Detecta zonas aisladas (sin conexiones)
+	 * @return Lista de zonas aisladas
+	 */
+	public LinkedList<String> getIsolatedZones() {
+		LinkedList<String> isolatedZones = new LinkedList<>();
+		LinkedList<String> allZones = urbanGraph.getVertices();
+
+		for (int i = 0; i < allZones.length(); i++) {
+			String zone = allZones.getNodeAtIndex(i);
+			if (urbanGraph.gradoNodo(zone) == 0) {
+				isolatedZones.insertLast(zone);
+			}
 		}
 
-		origen.agregarConexion(destino, peso);
-		operationStack.push("CONNECT_POINTS:" + zoneName + ":" + pointA + "->" + pointB + ":" + peso);
+		return isolatedZones;
+	}
+
+	// ==================== SIMULACIÓN DE ESCENARIOS ====================
+	/**
+	 * Cierra temporalmente una vía (elimina una arista)
+	 * @param zone1 Zona origen
+	 * @param zone2 Zona destino
+	 * @return true si se cierra correctamente
+	 * @throws ItemNotFound si la conexión no existe
+	 */
+	public boolean closeRoad(String zone1, String zone2) throws ItemNotFound {
+		return disconnectZones(zone1, zone2);
+	}
+
+	/**
+	 * Reabre una vía cerrada previamente
+	 * @param zone1 Zona origen
+	 * @param zone2 Zona destino
+	 * @param weight Peso de la conexión
+	 * @return true si se reabre correctamente
+	 * @throws ItemNotFound si las zonas no existen
+	 */
+	public boolean reopenRoad(String zone1, String zone2, int weight) throws ItemNotFound {
+		if (!urbanGraph.searchVertex(zone1) || !urbanGraph.searchVertex(zone2)) {
+			throw new ItemNotFound("Una o ambas zonas no existen");
+		}
+		urbanGraph.insertEdge(zone1, zone2, weight);
 		return true;
 	}
 
+	// ==================== MÉTODOS AUXILIARES ====================
 	/**
-	 * Verifica si existe una ruta entre dos puntos dentro de una misma zona.
-	 * Utiliza un algoritmo DFS sobre las conexiones entre los puntos.
-	 *
-	 * @param zoneName nombre de la zona.
-	 * @param inicio   nombre del punto de inicio.
-	 * @param destino  nombre del punto de destino.
-	 * @return true si existe un camino entre los puntos, false en caso contrario.
-	 * @throws ItemNotFound si la zona o alguno de los puntos no existen.
+	 * Busca una zona por su nombre
+	 * @param zoneName Nombre de la zona a buscar
+	 * @return Zona si existe, null en otro caso
 	 */
-	public boolean existeRutaEntrePuntos(String zoneName, String inicio, String destino) throws ItemNotFound {
-		Zona zona = buscarZona(zoneName);
-		if (zona == null) throw new ItemNotFound("Zona no encontrada.");
-
-		Punto pInicio = zona.getArbolDistrito().searchX(new Punto(inicio));
-		Punto pDestino = zona.getArbolDistrito().searchX(new Punto(destino));
-
-		if (pInicio == null || pDestino == null) {
-			throw new ItemNotFound("Uno o ambos puntos no existen.");
-		}
-
-		return dfsPuntos(pInicio, pDestino, new LinkedList<>());
-	}
-
-	/**
-	 * Conecta dos puntos que se encuentran en zonas diferentes.
-	 *
-	 * @param zonaA   nombre de la zona del punto A.
-	 * @param puntoA  nombre del punto A.
-	 * @param zonaB   nombre de la zona del punto B.
-	 * @param puntoB  nombre del punto B.
-	 * @param peso    peso de la conexión.
-	 * @return true si la conexión se realizó correctamente.
-	 * @throws ItemNotFound si alguna de las zonas o puntos no existen.
-	 */
-	public boolean conectarPuntosEntreZonas(String zonaA, String puntoA, String zonaB, String puntoB, int peso) throws ItemNotFound {
-		Zona zA = buscarZona(zonaA);
-		Zona zB = buscarZona(zonaB);
-
-		if (zA == null || zB == null) throw new ItemNotFound("Una o ambas zonas no existen.");
-
-		Punto pA = zA.getArbolDistrito().searchX(new Punto(puntoA));
-		Punto pB = zB.getArbolDistrito().searchX(new Punto(puntoB));
-
-		if (pA == null || pB == null) throw new ItemNotFound("Uno o ambos puntos no existen.");
-
-		pA.agregarConexion(pB, peso);
-		operationStack.push("CROSS_CONNECT:" + zonaA + ":" + puntoA + "->" + zonaB + ":" + puntoB + ":" + peso);
-		return true;
-	}
-
-	/**
-	 * Recorrido en profundidad (DFS) entre puntos conectados.
-	 *
-	 * @param actual   punto actual desde donde se parte.
-	 * @param destino  punto objetivo que se desea alcanzar.
-	 * @param visitados lista de puntos ya visitados para evitar ciclos.
-	 * @return true si se encontró una ruta desde actual hasta destino.
-	 */
-	private boolean dfsPuntos(Punto actual, Punto destino, LinkedList<Punto> visitados) {
-		if (actual.equals(destino)) return true;
-
-		visitados.insertLast(actual);
-
-		LinkedList<ConexionPunto> conexiones = actual.getConexiones();
-		for (int i = 0; i < conexiones.length(); i++) {
-			ConexionPunto conexion = conexiones.getNodeAtIndex(i);
-			Punto siguiente = conexion.getDestino();
-
-			if (!estaVisitado(visitados, siguiente)) {
-				if (dfsPuntos(siguiente, destino, visitados)) {
-					return true;
-				}
+	private Zona buscarZona(String zoneName) {
+		for (int i = 0; i < zones.length(); i++) {
+			Zona zona = zones.getNodeAtIndex(i);
+			if (zona.getNombre().equalsIgnoreCase(zoneName)) {
+				return zona;
 			}
 		}
-
-		return false;
+		return null;
 	}
 
 	/**
-	 * Verifica si un punto ya ha sido visitado durante la búsqueda DFS.
-	 *
-	 * @param visitados lista de puntos ya recorridos.
-	 * @param objetivo  punto que se desea verificar.
-	 * @return true si ya fue visitado, false en caso contrario.
+	 * Obtiene el historial de rutas consultadas
+	 * @return Cola con el historial de rutas
 	 */
-	private boolean estaVisitado(LinkedList<Punto> visitados, Punto objetivo) {
-		for (int i = 0; i < visitados.length(); i++) {
-			Punto p = visitados.getNodeAtIndex(i);
-			if (p.getNombre().equalsIgnoreCase(objetivo.getNombre())) {
-				return true;
-			}
-		}
-		return false;
+	public LinkedQueue<String> getRouteHistory() {
+		return routeHistory;
 	}
 
-
-	//ALTO RIESGO(NO CREO QUE FUNCIONE)
 	/**
-	 * Verifica si existe una ruta entre dos puntos que pertenecen a zonas distintas,
-	 * considerando conexiones tanto internas (dentro de zonas) como externas (entre zonas).
-	 *
-	 * @param zonaA nombre de la zona del punto de origen.
-	 * @param puntoA nombre del punto de origen.
-	 * @param zonaB nombre de la zona del punto de destino.
-	 * @param puntoB nombre del punto de destino.
-	 * @return true si existe una ruta entre los dos puntos, false en caso contrario.
-	 * @throws ItemNotFound si alguna de las zonas o puntos no existen.
+	 * Obtiene las últimas N rutas consultadas
+	 * @param count Cantidad de rutas a obtener
+	 * @return Lista con las últimas rutas
+	 * @throws ExceptionIsEmpty si no hay rutas en historial
 	 */
-	public boolean existeRutaEntreZonasEntrePuntos(String zonaA, String puntoA, String zonaB, String puntoB) throws ItemNotFound {
-		Zona zA = buscarZona(zonaA);
-		Zona zB = buscarZona(zonaB);
+	public LinkedList<String> getRecentRoutes(int count) throws ExceptionIsEmpty {
+		LinkedList<String> recentRoutes = new LinkedList<>();
+		LinkedQueue<String> tempQueue = new LinkedQueue<>();
+		int added = 0;
 
-		if (zA == null || zB == null) throw new ItemNotFound("Una o ambas zonas no existen.");
-
-		Punto pA = zA.getArbolDistrito().searchX(new Punto(puntoA));
-		Punto pB = zB.getArbolDistrito().searchX(new Punto(puntoB));
-
-		if (pA == null || pB == null) throw new ItemNotFound("Uno o ambos puntos no existen.");
-
-		// Inicia DFS global desde pA
-		return dfsGlobal(pA, pB, new LinkedList<>());
-	}
-
-	private boolean dfsGlobal(Punto actual, Punto destino, LinkedList<Punto> visitados) {
-		if (actual.equals(destino)) return true;
-
-		visitados.insertLast(actual);
-
-		LinkedList<ConexionPunto> conexiones = actual.getConexiones();
-		for (int i = 0; i < conexiones.length(); i++) {
-			ConexionPunto conexion = conexiones.getNodeAtIndex(i);
-			Punto siguiente = conexion.getDestino();
-
-			if (!estaVisitado(visitados, siguiente)) {
-				if (dfsGlobal(siguiente, destino, visitados)) {
-					return true;
-				}
-			}
+		while (!routeHistory.isEmpty()) {
+			tempQueue.enqueue(routeHistory.dequeue());
 		}
 
-		return false;
+		LinkedStack<String> tempStack = new LinkedStack<>();
+		while (!tempQueue.isEmpty()) {
+			String route = tempQueue.dequeue();
+			tempStack.push(route);
+			routeHistory.enqueue(route);
+		}
+
+		while (!tempStack.isEmpty() && added < count) {
+			recentRoutes.insertFirst(tempStack.pop());
+			added++;
+		}
+
+		return recentRoutes;
 	}
 
+	// ==================== MÉTODOS DE UTILIDAD ====================
+	/**
+	 * Obtiene el grafo urbano subyacente
+	 * @return El grafo urbano
+	 */
+	public GraphLink<String> getUrbanGraph() {
+		return urbanGraph;
+	}
 
+	/**
+	 * Obtiene estadísticas del sistema
+	 * @return Cadena con estadísticas
+	 */
+	public String getSystemStats() {
+		StringBuilder stats = new StringBuilder();
+		stats.append("=== ESTADÍSTICAS DEL SISTEMA ===\n");
+		stats.append("Total de zonas: ").append(zones.length()).append("\n");
+		stats.append("Sistema conectado: ").append(isSystemConnected() ? "Sí" : "No").append("\n");
+		stats.append("Zonas aisladas: ").append(getIsolatedZones().length()).append("\n");
+		stats.append("Rutas en historial: ").append(routeHistory.size()).append("\n");
+
+		return stats.toString();
+	}
+
+	/**
+	 * Reinicia completamente el sistema
+	 */
+	public void resetSystem() {
+		this.urbanGraph = new GraphLink<>(true, true);
+		this.zones = new LinkedList<>();
+		this.routeHistory = new LinkedQueue<>();
+	}
 }

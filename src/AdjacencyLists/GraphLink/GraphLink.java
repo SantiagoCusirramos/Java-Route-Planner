@@ -545,4 +545,30 @@ public class GraphLink<E> {
         return vertices;
     }
 
+    public LinkedList<LinkedList<E>> getConnectedComponents() {
+        LinkedList<LinkedList<E>> components = new LinkedList<>();
+        resetVisitedFlags();
+
+        Node<Vertex<E>> current = listVertex.getHead();
+
+        while (current != null) {
+            Vertex<E> vertex = current.getData();
+            if (!vertex.isVisited()) {
+                LinkedList<Vertex<E>> componentVertices = dfsRecursive(vertex, new LinkedList<>());
+                LinkedList<E> componentData = new LinkedList<>();
+
+                Node<Vertex<E>> node = componentVertices.getHead();
+                while (node != null) {
+                    componentData.insertLast(node.getData().getData());
+                    node = node.getNext();
+                }
+                components.insertLast(componentData);
+            }
+            current = current.getNext();
+        }
+
+        return components;
+    }
+
+
 }
