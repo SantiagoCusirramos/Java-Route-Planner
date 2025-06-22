@@ -390,11 +390,10 @@ public class Interfaz extends JFrame {
                 int x1=(int)(p1.x+dx*t),y1=(int)(p1.y+dy*t);
                 int x2=(int)(p2.x-dx*t),y2=(int)(p2.y-dy*t);
 
-                g2.setColor(Color.WHITE);
-
-                // grosos del la linea
-                g2.setStroke(new BasicStroke(2));
-                drawArrowLine(g2,x1,y1,x2,y2,12,8);
+                //estilo de la flecha
+                g2.setColor(new Color(100, 149, 237));
+                g2.setStroke(new BasicStroke(3, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+                drawArrowLine(g2, x1, y1, x2, y2, 15, 10);
 
                 // calcularse la posicion del peso
                 double ux=dx/len,uy=dy/len;
