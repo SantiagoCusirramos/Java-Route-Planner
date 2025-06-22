@@ -191,6 +191,7 @@ public class Interfaz extends JFrame {
         panel.repaint();
     }
 
+    //opcion para eliminar arista origen-destino no funciona correctamente, corregir
     private void eliminarArista() throws ItemNotFound {
         if (aristas.length() == 0) {
             JOptionPane.showMessageDialog(this, "No hay aristas.");
@@ -209,6 +210,7 @@ public class Interfaz extends JFrame {
         panel.repaint();
     }
 
+    //al modificar el peso de aristas dobles (de A a B y de B a A) solo se actualiza el valor de un lado, corregir
     private void modificarPesoArista() throws ItemNotFound {
         if (aristas.length() == 0) {
             JOptionPane.showMessageDialog(this, "No hay aristas.");
