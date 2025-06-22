@@ -138,7 +138,7 @@ public class Interfaz extends JFrame {
             return;
         }
 
-        InterfazArbol ventana = new InterfazArbol(zona);
+        InterfazArbol ventana = new InterfazArbol(controller, zona);
         ventana.setVisible(true);
     }
 

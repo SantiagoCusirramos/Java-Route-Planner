@@ -12,130 +12,120 @@ import java.awt.*;
 
 public class InterfazArbol extends JFrame {
     private final Controller controller;
-    private final String zoneName;
-    private BTree<Punto> arbol;
+    private final Zona zoneName;
 
-    public InterfazArbol(String zoneName) {
-        this.controller = new Controller();
+    public InterfazArbol(Controller controller, Zona zoneName) {
+        super("Árbol B+ de " + zoneName);
+        this.controller = controller;
         this.zoneName = zoneName;
 
-        // Obtén la zona y su árbol
-        Zona zona = controller.buscarZona(zoneName);
+        // Valida que la zona exista
+        Zona zona = controller.buscarZona(zoneName.getNombre());
         if (zona == null) {
-            JOptionPane.showMessageDialog(null, "Zona no encontrada: " + zoneName);
+            JOptionPane.showMessageDialog(this, "Zona no encontrada: " + zoneName);
             dispose();
             return;
         }
-        this.arbol = zona.getArbolDistrito();
 
-        setTitle("Árbol B+ de " + zoneName);
         setSize(900, 700);
         setLocationRelativeTo(null);
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 
         // Panel de dibujo
         ArbolPanel panel = new ArbolPanel();
-        JScrollPane scroll = new JScrollPane(panel);
-        add(scroll, BorderLayout.CENTER);
+        add(new JScrollPane(panel), BorderLayout.CENTER);
 
-        // Botones: Agregar, Eliminar, Buscar
+        // Botones
         JPanel botones = new JPanel();
-
-        JButton btnAgregar = new JButton("Agregar Distrito");
-        btnAgregar.addActionListener(e -> {
-            String name = JOptionPane.showInputDialog(this, "Nombre del distrito:");
-            if (name != null && !name.trim().isEmpty()) {
-                try {
-                    boolean ok = controller.addDistrictToZone(zoneName, name);
-                    if (!ok) {
-                        JOptionPane.showMessageDialog(this, "Distrito ya existe.");
-                    }
-                } catch (ItemNotFound ex) {
-                    JOptionPane.showMessageDialog(this, ex.getMessage());
-                }
-                panel.repaint();
-            }
-        });
-
-        JButton btnEliminar = new JButton("Eliminar Distrito");
-        btnEliminar.addActionListener(e -> {
-            String name = JOptionPane.showInputDialog(this, "Nombre del distrito a eliminar:");
-            if (name != null && !name.trim().isEmpty()) {
-                try {
-                    boolean ok = controller.removeDistrictFromZone(zoneName, name);
-                    if (!ok) {
-                        JOptionPane.showMessageDialog(this, "Distrito no existe.");
-                    }
-                } catch (ItemNotFound ex) {
-                    JOptionPane.showMessageDialog(this, ex.getMessage());
-                }
-                panel.repaint();
-            }
-        });
-
-        JButton btnBuscar = new JButton("Buscar Distrito");
-        btnBuscar.addActionListener(e -> {
-            String name = JOptionPane.showInputDialog(this, "Nombre del distrito a buscar:");
-            if (name != null && !name.trim().isEmpty()) {
-                try {
-                    boolean existe = controller.searchDistrictInZone(zoneName, name);
-                    JOptionPane.showMessageDialog(this, existe ? "Distrito existe" : "No encontrado");
-                } catch (ItemNotFound ex) {
-                    JOptionPane.showMessageDialog(this, ex.getMessage());
-                }
-            }
-        });
-
-        botones.add(btnAgregar);
-        botones.add(btnEliminar);
-        botones.add(btnBuscar);
+        botones.add(crearBoton("Agregar Distrito", () -> acciónAgregar(panel)));
+        botones.add(crearBoton("Eliminar Distrito", () -> acciónEliminar(panel)));
+        botones.add(crearBoton("Buscar Distrito", this::acciónBuscar));
         add(botones, BorderLayout.SOUTH);
+    }
+
+    private JButton crearBoton(String texto, Runnable acción) {
+        JButton b = new JButton(texto);
+        b.addActionListener(e -> acción.run());
+        return b;
+    }
+
+    private void acciónAgregar(ArbolPanel panel) {
+        String name = JOptionPane.showInputDialog(this, "Distrito:");
+        if (name != null && !name.trim().isEmpty()) {
+            try {
+                boolean ok = controller.addDistrictToZone(zoneName.getNombre(), name);
+                if (!ok) JOptionPane.showMessageDialog(this, "Distrito ya existe.");
+            } catch (ItemNotFound ex) {
+                JOptionPane.showMessageDialog(this, ex.getMessage());
+            }
+            panel.repaint();
+        }
+    }
+
+    private void acciónEliminar(ArbolPanel panel) {
+        String name = JOptionPane.showInputDialog(this, "Distrito a eliminar:");
+        if (name != null && !name.trim().isEmpty()) {
+            try {
+                boolean ok = controller.removeDistrictFromZone(zoneName.getNombre(), name);
+                if (!ok) JOptionPane.showMessageDialog(this, "Distrito no existe.");
+            } catch (ItemNotFound ex) {
+                JOptionPane.showMessageDialog(this, ex.getMessage());
+            }
+            panel.repaint();
+        }
+    }
+
+    private void acciónBuscar() {
+        String name = JOptionPane.showInputDialog(this, "Distrito a buscar:");
+        if (name != null && !name.trim().isEmpty()) {
+            try {
+                boolean existe = controller.searchDistrictInZone(zoneName.getNombre(), name);
+                JOptionPane.showMessageDialog(this, existe ? "Existe" : "No encontrado");
+            } catch (ItemNotFound ex) {
+                JOptionPane.showMessageDialog(this, ex.getMessage());
+            }
+        }
     }
 
     private class ArbolPanel extends JPanel {
         @Override
         protected void paintComponent(Graphics g) {
             super.paintComponent(g);
-            Zona zona = controller.buscarZona(zoneName);
-            arbol = zona.getArbolDistrito();
-
-            if (arbol.getRoot() == null) {
+            BTree<Punto> tree = controller.buscarZona(zoneName.getNombre()).getArbolDistrito();
+            if (tree.getRoot() == null) {
                 g.drawString("Árbol vacío.", 20, 20);
             } else {
-                dibujarNodo(g, arbol.getRoot(), getWidth() / 2, 30, getWidth() / 4);
+                dibujarNodo(g, tree.getRoot(), getWidth()/2, 30, getWidth()/4);
             }
         }
 
-        private void dibujarNodo(Graphics g, BNode<Punto> nodo, int x, int y, int offsetX) {
+        private void dibujarNodo(Graphics g, BNode<Punto> nodo, int x, int y, int offX) {
             if (nodo == null) return;
-
             int c = nodo.count;
-            // keys[] es Comparable[], casteamos uno a uno
-            Comparable<?>[] rawKeys = nodo.getKeys();
+
+            // Copiamos las celdas de claves
             Punto[] claves = new Punto[c];
-            for (int i = 0; i < c; i++) {
-                claves[i] = (Punto) rawKeys[i];
-            }
-            BNode<Punto>[] hijos = nodo.getChilds();
+            System.arraycopy(nodo.keys, 0, claves, 0, c);
 
-            // Dibuja el rectángulo del nodo
-            int ancho = 30 * c + 20;
+            // Dibujo del nodo
+            int w = 30*c + 20;
             g.setColor(Color.WHITE);
-            g.fillRect(x - ancho/2, y, ancho, 25);
+            g.fillRect(x - w/2, y, w, 25);
             g.setColor(Color.BLACK);
-            g.drawRect(x - ancho/2, y, ancho, 25);
+            g.drawRect(x - w/2, y, w, 25);
             for (int i = 0; i < c; i++) {
-                g.drawString(claves[i].toString(), x - ancho/2 + 10 + 30*i, y + 17);
+                g.drawString(claves[i].toString(),
+                        x - w/2 + 10 + 30*i, y + 17);
             }
 
-            // Dibuja recursivamente hijos
+            // Dibujo recursivo de hijos
             for (int i = 0; i <= c; i++) {
-                BNode<Punto> h = hijos[i];
+                BNode<Punto> h = nodo.childs[i];
                 if (h != null) {
-                    int childX = x - offsetX + i * (2*offsetX/(c+1));
-                    int childY = y + 70;
-                    g.drawLine(x, y + 25, childX, childY);
-                    dibujarNodo(g, h, childX, childY, offsetX/2);
+                    int cx = x - offX + i * (2*offX/(c+1));
+                    int cy = y + 70;
+                    g.drawLine(x, y+25, cx, cy);
+                    dibujarNodo(g, h, cx, cy, offX/2);
                 }
             }
         }
