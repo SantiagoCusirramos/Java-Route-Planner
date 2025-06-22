@@ -98,12 +98,17 @@ public class Interfaz extends JFrame {
         estiloBoton(btnBuscarVertice, new Color(59, 89, 182), Color.WHITE, 150, 40);
         btnBuscarVertice.addActionListener(e -> buscarVertice());
 
+        JButton btnBuscarEdificio = new JButton("Buscar edificio");
+        estiloBoton(btnBuscarEdificio, new Color(59, 89, 182), Color.WHITE, 150, 40);
+        btnBuscarEdificio.addActionListener(e -> buscarEdificio());
+
         botones.add(btnAgregarVertice);
         botones.add(btnAgregarArista);
         botones.add(btnEliminarVertice);
         botones.add(btnEliminarArista);
-        botones.add(btnBuscarVertice);
         botones.add(btnModificarPeso);
+        botones.add(btnBuscarVertice);
+        botones.add(btnBuscarEdificio);
         add(botones, BorderLayout.SOUTH);
 
         setVisible(true);
@@ -270,6 +275,21 @@ public class Interfaz extends JFrame {
         if (nombre == null || nombre.isEmpty()) return;
         JOptionPane.showMessageDialog(this, vertices.search(nombre)?
                 "Existe: " + nombre : "No existe: " + nombre);
+    }
+
+    private void buscarEdificio() {
+        String edificio = JOptionPane.showInputDialog(this, "Nombre del edificio a buscar:");
+        if (edificio == null || edificio.trim().isEmpty()) return;
+
+        String zonaEncontrada = controller.findZoneOfDistrict(edificio.trim());
+
+        if (zonaEncontrada != null) {
+            JOptionPane.showMessageDialog(this,
+                    "El edificio '" + edificio + "' se encuentra en la zona '" + zonaEncontrada + "'.");
+        } else {
+            JOptionPane.showMessageDialog(this,
+                    "No se encontró el edificio '" + edificio + "' en ninguna zona.");
+        }
     }
 
     class BotonVertice extends JComponent {

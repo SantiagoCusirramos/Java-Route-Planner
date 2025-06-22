@@ -482,4 +482,24 @@ public class Controller {
 		this.zones = new LinkedList<>();
 		this.routeHistory = new LinkedQueue<>();
 	}
+
+	/**
+	 * Busca un edificio en todas las zonas y devuelve el nombre de la zona que lo contiene.
+	 * @param districtName Nombre del edificio a buscar
+	 * @return Nombre de la zona donde se encontró, o null si no se encuentra
+	 */
+	public String findZoneOfDistrict(String districtName) {
+		Punto distrito = new Punto(districtName);
+
+		for (int i = 0; i < zones.length(); i++) {
+			Zona zona = zones.getNodeAtIndex(i);
+			BTree<Punto> arbol = zona.getArbolDistrito();
+
+			if (arbol.search(distrito)) {
+				return zona.getNombre();
+			}
+		}
+
+		return null; // No se encontró en ninguna zona
+	}
 }
