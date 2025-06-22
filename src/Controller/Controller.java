@@ -144,11 +144,10 @@ public class Controller {
 			throw new ItemNotFound("Una o ambas zonas no existen.");
 		}
 
-		boolean removed1 = urbanGraph.removeEdge(zone1, zone2);
-		boolean removed2 = urbanGraph.removeEdge(zone2, zone1);
+		boolean removed = urbanGraph.removeEdge(zone1, zone2);
 
-		if (!removed1 && !removed2) {
-			throw new ItemNotFound("No existe la arista en ninguna dirección.");
+		if (!removed) {
+			throw new ItemNotFound("No existe la arista");
 		}
 
 		return true;
