@@ -26,15 +26,7 @@ public class Controller {
 	// ===========================================================================
 
 	public Controller() {
-		this.urbanGraph = new GraphLink<>(false, true); // No dirigido, con pesos
-		this.zones = new LinkedList<>();
-		this.routeHistory = new LinkedQueue<>();
-		this.operationStack = new LinkedStack<>();
-	}
-
-	//Inicializa el grafo como dirigido o no dirigido
-	public Controller(boolean isDirected, boolean isWeighted) {
-		this.urbanGraph = new GraphLink<>(isDirected, isWeighted);
+		this.urbanGraph = new GraphLink<>(true, true); // No dirigido, con pesos
 		this.zones = new LinkedList<>();
 		this.routeHistory = new LinkedQueue<>();
 		this.operationStack = new LinkedStack<>();
@@ -93,9 +85,6 @@ public class Controller {
 			throw new ItemNotFound("Error al eliminar la zona '" + zoneName + "' del sistema.");
 		}
 	}
-
-
-
 
 
 	/**
