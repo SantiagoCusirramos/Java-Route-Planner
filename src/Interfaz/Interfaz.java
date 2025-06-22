@@ -34,7 +34,7 @@ public class Interfaz extends JFrame {
         botonesVer = new LinkedList<>();
 
         setTitle("Editor de Grafo");
-        setSize(1200, 770);
+        setSize(1990, 780);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setLayout(new BorderLayout());
 
@@ -52,7 +52,7 @@ public class Interfaz extends JFrame {
         JPanel botones = new JPanel(new GridLayout(2, 7, 10, 10));
         botones.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-        JButton btnAgregarVertice = new JButton("Agregar vértice");
+        JButton btnAgregarVertice = new JButton("Agregar Ciudad");
         estiloBoton(btnAgregarVertice, new Color(59, 89, 182), Color.WHITE, 150, 40);
         btnAgregarVertice.addActionListener(e -> {
             try {
@@ -70,7 +70,7 @@ public class Interfaz extends JFrame {
                 throw new RuntimeException(ex);
             }
         });
-        JButton btnEliminarVertice = new JButton("Eliminar vértice");
+        JButton btnEliminarVertice = new JButton("Eliminar Ciudad");
         estiloBoton(btnEliminarVertice, new Color(59, 89, 182), Color.WHITE, 150, 40);
         btnEliminarVertice.addActionListener(e -> {
             try {
@@ -79,7 +79,7 @@ public class Interfaz extends JFrame {
                 throw new RuntimeException(ex);
             }
         });
-        JButton btnModificarVertice = new JButton("Modificar vértice");
+        JButton btnModificarVertice = new JButton("Modificar Ciudad");
         estiloBoton(btnModificarVertice, new Color(59, 89, 182), Color.WHITE, 150, 40);
         btnModificarVertice.addActionListener(e -> {
             try {
@@ -106,7 +106,7 @@ public class Interfaz extends JFrame {
                 throw new RuntimeException(ex);
             }
         });
-        JButton btnBuscarVertice = new JButton("Buscar vértice");
+        JButton btnBuscarVertice = new JButton("Buscar Ciudad");
         estiloBoton(btnBuscarVertice, new Color(59, 89, 182), Color.WHITE, 150, 40);
         btnBuscarVertice.addActionListener(e -> buscarVertice());
 
