@@ -16,6 +16,16 @@ public class Interfaz extends JFrame {
     private LinkedList<JComponent> botonesVer;
     private DibujoPanel panel;
 
+    private void estiloBoton(JButton boton, Color fondo, Color texto, int ancho, int alto) {
+        boton.setBackground(fondo);
+        boton.setForeground(texto);
+        boton.setFocusPainted(false);
+        boton.setBorder(BorderFactory.createEmptyBorder(5, 15, 5, 15));
+        boton.setPreferredSize(new Dimension(ancho, alto));
+        boton.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        boton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+    }
+    
     public Interfaz() {
         this.controller = new Controller();
         vertices = new LinkedList<>();
@@ -40,6 +50,7 @@ public class Interfaz extends JFrame {
 
         JPanel botones = new JPanel();
         JButton btnAgregarVertice = new JButton("Agregar vértice");
+        estiloBoton(btnAgregarVertice, new Color(59, 89, 182), Color.WHITE, 150, 40);
         btnAgregarVertice.addActionListener(e -> {
             try {
                 agregarVertice();
@@ -48,6 +59,7 @@ public class Interfaz extends JFrame {
             }
         });
         JButton btnAgregarArista = new JButton("Agregar arista");
+        estiloBoton(btnAgregarArista, new Color(59, 89, 182), Color.WHITE, 150, 40);
         btnAgregarArista.addActionListener(e -> {
             try {
                 agregarArista();
@@ -56,6 +68,7 @@ public class Interfaz extends JFrame {
             }
         });
         JButton btnEliminarVertice = new JButton("Eliminar vértice");
+        estiloBoton(btnEliminarVertice, new Color(59, 89, 182), Color.WHITE, 150, 40);
         btnEliminarVertice.addActionListener(e -> {
             try {
                 eliminarVertice();
@@ -64,6 +77,7 @@ public class Interfaz extends JFrame {
             }
         });
         JButton btnEliminarArista = new JButton("Eliminar arista");
+        estiloBoton(btnEliminarArista, new Color(59, 89, 182), Color.WHITE, 150, 40);
         btnEliminarArista.addActionListener(e -> {
             try {
                 eliminarArista();
@@ -72,6 +86,7 @@ public class Interfaz extends JFrame {
             }
         });
         JButton btnModificarPeso = new JButton("Modificar peso");
+        estiloBoton(btnModificarPeso, new Color(59, 89, 182), Color.WHITE, 150, 40);
         btnModificarPeso.addActionListener(e -> {
             try {
                 modificarPesoArista();
@@ -80,6 +95,7 @@ public class Interfaz extends JFrame {
             }
         });
         JButton btnBuscarVertice = new JButton("Buscar vértice");
+        estiloBoton(btnBuscarVertice, new Color(59, 89, 182), Color.WHITE, 150, 40);
         btnBuscarVertice.addActionListener(e -> buscarVertice());
 
         botones.add(btnAgregarVertice);
@@ -92,7 +108,7 @@ public class Interfaz extends JFrame {
 
         setVisible(true);
     }
-
+    
     private void agregarVertice() throws ItemDuplicated {
         String nombre = JOptionPane.showInputDialog(this, "Ingrese nombre del vértice:");
         if (nombre != null && !nombre.isEmpty()) {
