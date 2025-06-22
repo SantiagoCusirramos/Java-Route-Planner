@@ -12,17 +12,16 @@ import java.awt.*;
 
 public class InterfazArbol extends JFrame {
     private final Controller controller;
-    private final Zona zoneName;
+    private final Zona zona;
 
-    public InterfazArbol(Controller controller, Zona zoneName) {
-        super("Árbol B+ de " + zoneName);
+    public InterfazArbol(Controller controller, Zona zona) {
+        super("Árbol B+ de " + zona.getNombre());
         this.controller = controller;
-        this.zoneName = zoneName;
+        this.zona = zona;
 
-        // Valida que la zona exista
-        Zona zona = controller.buscarZona(zoneName.getNombre());
-        if (zona == null) {
-            JOptionPane.showMessageDialog(this, "Zona no encontrada: " + zoneName);
+        // Validar zona
+        if (controller.buscarZona(zona.getNombre()) == null) {
+            JOptionPane.showMessageDialog(this, "Zona no encontrada: " + zona.getNombre());
             dispose();
             return;
         }
@@ -31,29 +30,31 @@ public class InterfazArbol extends JFrame {
         setLocationRelativeTo(null);
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 
-        // Panel de dibujo
+        // ------ Panel de dibujo -------
         ArbolPanel panel = new ArbolPanel();
         add(new JScrollPane(panel), BorderLayout.CENTER);
 
-        // Botones
+        // ------ Botones abajo -------
         JPanel botones = new JPanel();
-        botones.add(crearBoton("Agregar Distrito", () -> acciónAgregar(panel)));
-        botones.add(crearBoton("Eliminar Distrito", () -> acciónEliminar(panel)));
-        botones.add(crearBoton("Buscar Distrito", this::acciónBuscar));
+        botones.add(crearBoton("Agregar Distrito", () -> accionAgregar(panel)));
+        botones.add(crearBoton("Eliminar Distrito", () -> accionEliminar(panel)));
+        botones.add(crearBoton("Buscar Distrito", this::accionBuscar));
         add(botones, BorderLayout.SOUTH);
+
+        setVisible(true);
     }
 
-    private JButton crearBoton(String texto, Runnable acción) {
+    private JButton crearBoton(String texto, Runnable accion) {
         JButton b = new JButton(texto);
-        b.addActionListener(e -> acción.run());
+        b.addActionListener(e -> accion.run());
         return b;
     }
 
-    private void acciónAgregar(ArbolPanel panel) {
-        String name = JOptionPane.showInputDialog(this, "Distrito:");
+    private void accionAgregar(ArbolPanel panel) {
+        String name = JOptionPane.showInputDialog(this, "Nuevo distrito:");
         if (name != null && !name.trim().isEmpty()) {
             try {
-                boolean ok = controller.addDistrictToZone(zoneName.getNombre(), name);
+                boolean ok = controller.addDistrictToZone(zona.getNombre(), name);
                 if (!ok) JOptionPane.showMessageDialog(this, "Distrito ya existe.");
             } catch (ItemNotFound ex) {
                 JOptionPane.showMessageDialog(this, ex.getMessage());
@@ -62,11 +63,11 @@ public class InterfazArbol extends JFrame {
         }
     }
 
-    private void acciónEliminar(ArbolPanel panel) {
+    private void accionEliminar(ArbolPanel panel) {
         String name = JOptionPane.showInputDialog(this, "Distrito a eliminar:");
         if (name != null && !name.trim().isEmpty()) {
             try {
-                boolean ok = controller.removeDistrictFromZone(zoneName.getNombre(), name);
+                boolean ok = controller.removeDistrictFromZone(zona.getNombre(), name);
                 if (!ok) JOptionPane.showMessageDialog(this, "Distrito no existe.");
             } catch (ItemNotFound ex) {
                 JOptionPane.showMessageDialog(this, ex.getMessage());
@@ -75,12 +76,12 @@ public class InterfazArbol extends JFrame {
         }
     }
 
-    private void acciónBuscar() {
+    private void accionBuscar() {
         String name = JOptionPane.showInputDialog(this, "Distrito a buscar:");
         if (name != null && !name.trim().isEmpty()) {
             try {
-                boolean existe = controller.searchDistrictInZone(zoneName.getNombre(), name);
-                JOptionPane.showMessageDialog(this, existe ? "Existe" : "No encontrado");
+                boolean existe = controller.searchDistrictInZone(zona.getNombre(), name);
+                JOptionPane.showMessageDialog(this, existe ? "Distrito existe" : "No encontrado");
             } catch (ItemNotFound ex) {
                 JOptionPane.showMessageDialog(this, ex.getMessage());
             }
@@ -88,44 +89,71 @@ public class InterfazArbol extends JFrame {
     }
 
     private class ArbolPanel extends JPanel {
+        private final Image imgEd;
+
+        public ArbolPanel() {
+            // cargar la imagen una sola vez
+            ImageIcon iconEd = new ImageIcon(getClass().getResource("/Interfaz/img/casa.png"));
+            imgEd = iconEd.getImage().getScaledInstance(40, 40, Image.SCALE_SMOOTH);
+        }
+
         @Override
         protected void paintComponent(Graphics g) {
             super.paintComponent(g);
-            BTree<Punto> tree = controller.buscarZona(zoneName.getNombre()).getArbolDistrito();
+
+            BTree<Punto> tree = zona.getArbolDistrito();
             if (tree.getRoot() == null) {
                 g.drawString("Árbol vacío.", 20, 20);
             } else {
-                dibujarNodo(g, tree.getRoot(), getWidth()/2, 30, getWidth()/4);
+                dibujarNodo(g, tree.getRoot(), getWidth() / 2, 30, getWidth() / 4);
             }
         }
 
-        private void dibujarNodo(Graphics g, BNode<Punto> nodo, int x, int y, int offX) {
+        private void dibujarNodo(Graphics g, BNode<Punto> nodo, int x, int y, int offsetX) {
             if (nodo == null) return;
+
             int c = nodo.count;
+            FontMetrics fm = g.getFontMetrics();
 
-            // Copiamos las celdas de claves
+            // Extrae las claves sin castear el arreglo completo
             Punto[] claves = new Punto[c];
-            System.arraycopy(nodo.keys, 0, claves, 0, c);
-
-            // Dibujo del nodo
-            int w = 30*c + 20;
-            g.setColor(Color.WHITE);
-            g.fillRect(x - w/2, y, w, 25);
-            g.setColor(Color.BLACK);
-            g.drawRect(x - w/2, y, w, 25);
+            Object[] rawKeys = nodo.keys; // es Comparable[], lo tratamos como Object[]
             for (int i = 0; i < c; i++) {
-                g.drawString(claves[i].toString(),
-                        x - w/2 + 10 + 30*i, y + 17);
+                claves[i] = (Punto) rawKeys[i];
             }
 
-            // Dibujo recursivo de hijos
+            // Extrae los hijos
+            BNode<Punto>[] hijos = (BNode<Punto>[]) new BNode[c+1];  // arreglo vacío
+            Object[] rawHijos = nodo.childs; // es BNode[]
             for (int i = 0; i <= c; i++) {
-                BNode<Punto> h = nodo.childs[i];
+                hijos[i] = (BNode<Punto>) rawHijos[i];
+            }
+
+            // --- luego dibujas edificios igual que antes ---
+            int ancho = c * 50;
+            int startX = x - ancho/2;
+            for (int i = 0; i < c; i++) {
+                int ix = startX + i * 50;
+                int iy = y;
+                g.drawImage(imgEd, ix, iy, this);
+                String label = claves[i].toString();
+                int textW = fm.stringWidth(label);
+                int tx = ix + (40 - textW) / 2;
+                int ty = iy + 40 + fm.getAscent() + 2;
+                g.drawString(label, tx, ty);
+            }
+
+            // líneas a hijos
+            for (int i = 0; i <= c; i++) {
+                BNode<Punto> h = hijos[i];
                 if (h != null) {
-                    int cx = x - offX + i * (2*offX/(c+1));
-                    int cy = y + 70;
-                    g.drawLine(x, y+25, cx, cy);
-                    dibujarNodo(g, h, cx, cy, offX/2);
+                    int idx = Math.min(i, c-1);
+                    int px = startX + idx * 50 + 20;
+                    int py = y + 40 + fm.getAscent()/2;
+                    int childX = x - offsetX + i * (2*offsetX/(c+1));
+                    int childY = y + 100;
+                    g.drawLine(px, py, childX, childY);
+                    dibujarNodo(g, h, childX, childY, offsetX/2);
                 }
             }
         }
