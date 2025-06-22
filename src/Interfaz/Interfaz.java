@@ -210,14 +210,19 @@ public class Interfaz extends JFrame {
 
         controller.renameZone(actual, nuevo);
 
-        // Actualizar en la lista de vértices
         int idx = vertices.findIndex(actual);
         vertices.set(idx, nuevo);
 
-        // Actualizar botones
-        BotonVertice boton = (BotonVertice) botonesVer.getNodeAtIndex(idx);
-        boton.nombre = nuevo;
-        panel.repaint();
+        // Quitar el viejo botón
+        BotonVertice viejoBoton = (BotonVertice) botonesVer.getNodeAtIndex(idx);
+        panel.remove(viejoBoton);
+
+        // Crear nuevo botón con el nuevo nombre
+        ImageIcon icono = new ImageIcon(getClass().getResource("/Interfaz/img/edificios.png")); // o tu imagen real
+        BotonVertice nuevoBoton = new BotonVertice(nuevo, icono);
+
+        botonesVer.set(idx, nuevoBoton);
+        panel.add(nuevoBoton);
 
         // Actualizar aristas
         for (int i = 0; i < aristas.length(); i++) {
@@ -225,7 +230,9 @@ public class Interfaz extends JFrame {
             if (a.origen.equals(actual)) a.origen = nuevo;
             if (a.destino.equals(actual)) a.destino = nuevo;
         }
-        panel.repaint();
+
+        panel.revalidate(); // actualiza el layout
+        panel.repaint();    // redibuja
     }
 
     private void abrirVentanaVertice(String nombre) throws ItemNotFound {
@@ -284,23 +291,50 @@ public class Interfaz extends JFrame {
     }
 
     private void eliminarVertice() throws ItemNotFound {
-        String nombre = JOptionPane.showInputDialog(this, "Ingrese vértice:");
-        if (nombre == null || nombre.isEmpty()) return;
-        if (!vertices.search(nombre)) {
-            JOptionPane.showMessageDialog(this, "Vértice no existe.");
+        if (vertices.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "No hay zonas para eliminar.");
             return;
         }
-        controller.removeZone(nombre);
+
+        // Mostrar lista de zonas actuales
+        String[] opciones = new String[vertices.length()];
+        for (int i = 0; i < opciones.length; i++) {
+            opciones[i] = vertices.getNodeAtIndex(i);
+        }
+
+        String nombre = (String) JOptionPane.showInputDialog(this,
+                "Seleccione la zona a eliminar:", "Eliminar Zona",
+                JOptionPane.PLAIN_MESSAGE, null, opciones, null);
+
+        if (nombre == null || nombre.trim().isEmpty()) return;
+
         int idx = vertices.findIndex(nombre);
-        vertices.removeNode(nombre);
+
+        // 1. Eliminar de tu controlador
+        controller.removeZone(nombre);
+
+        // 2. Eliminar de la lista de vértices
+        vertices.removeAtIndex(idx);
+
+        // 3. Eliminar del panel visual
+        JComponent botonAEliminar = botonesVer.getNodeAtIndex(idx);
+        panel.remove(botonAEliminar);
+
+        // 4. Eliminar de la lista de botones
         botonesVer.removeAtIndex(idx);
+
+        // 5. Eliminar las aristas asociadas a ese vértice
         for (int i = 0; i < aristas.length(); ) {
             AristaGrafica a = aristas.getNodeAtIndex(i);
-            if (a.origen.equals(nombre) || a.destino.equals(nombre)) aristas.removeAtIndex(i);
-            else i++;
+            if (a.origen.equals(nombre) || a.destino.equals(nombre)) {
+                aristas.removeAtIndex(i); // no incrementamos i, porque se movieron los índices
+            } else {
+                i++;
+            }
         }
-        panel.removeAll();
-        for (int i = 0; i < botonesVer.length(); i++) panel.add(botonesVer.getNodeAtIndex(i));
+
+        // 6. Actualizar la interfaz
+        panel.revalidate();
         panel.repaint();
     }
 
@@ -519,9 +553,9 @@ public class Interfaz extends JFrame {
             addMouseListener(new java.awt.event.MouseAdapter() {
                 public void mouseClicked(java.awt.event.MouseEvent evt) {
                     try {
-                        abrirVentanaVertice(nombre);
+                        abrirVentanaVertice(BotonVertice.this.nombre); // siempre usa el valor actualizado
                     } catch (ItemNotFound e) {
-                        throw new RuntimeException(e);
+                        JOptionPane.showMessageDialog(null, "Error: " + e.getMessage());
                     }
                 }
             });

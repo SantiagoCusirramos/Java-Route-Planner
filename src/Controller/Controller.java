@@ -377,18 +377,37 @@ public class Controller {
 		return null; // No se encontró en ninguna zona
 	}
 
-	public void renameZone(String actual, String nuevo) throws ItemDuplicated, ItemNotFound {
-		if (!urbanGraph.existVertex(actual)) {
-			throw new ItemNotFound("La zona '" + actual + "' no existe.");
+	public boolean renameZone(String oldName, String newName)
+			throws ItemDuplicated, ItemNotFound {
+
+		if (!urbanGraph.searchVertex(oldName)) {
+			throw new ItemNotFound("La zona '" + oldName + "' no existe.");
 		}
 
-		if (urbanGraph.existVertex(nuevo)) {
-			throw new ItemDuplicated("La zona '" + nuevo + "' ya existe.");
+		if (urbanGraph.searchVertex(newName)) {
+			throw new ItemDuplicated("Ya existe una zona con el nombre '" + newName + "'.");
 		}
 
-		Zona zona = buscarZona(actual);  // Recupera el objeto asociado al nombre actual
-		urbanGraph.renameVertex(actual, nuevo);  // Renombra el vértice en el grafo
-		zona.setNombre(nuevo);  // Actualiza el nombre en el objeto Zona
+		// Actualizar en el grafo
+		urbanGraph.renameVertex(oldName, newName);
+
+		// Actualizar en la lista de zonas
+		for (int i = 0; i < zones.length(); i++) {
+			Zona zona = zones.getNodeAtIndex(i);
+			if (zona.getNombre().equalsIgnoreCase(oldName)) {
+				zona.setNombre(newName); // Actualizar nombre
+				break;
+			}
+		}
+
+		// Actualizar conexiones internas entre zonas si es necesario
+		for (int i = 0; i < zones.length(); i++) {
+			Zona currentZone = zones.getNodeAtIndex(i);
+			BTree<Punto> arbol = currentZone.getArbolDistrito();
+			// Actualizar referencias en el árbol B+ si se requiere
+		}
+
+		return true;
 	}
 
 }
