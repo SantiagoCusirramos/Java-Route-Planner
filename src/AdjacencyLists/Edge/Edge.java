@@ -33,6 +33,10 @@ public class Edge<E> {
         return weight;
     }
 
+    public void setWeight(int weight) {
+        this.weight = weight;
+    }
+
     public String toString(){
         if(this.weight > -1){
             return this.refDest.getData() + " [" + this.weight + "]";

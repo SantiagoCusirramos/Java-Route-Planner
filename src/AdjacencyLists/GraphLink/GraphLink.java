@@ -550,21 +550,39 @@ public class GraphLink<E> {
         resetVisitedFlags();
 
         Node<Vertex<E>> current = listVertex.getHead();
+
         while (current != null) {
             Vertex<E> vertex = current.getData();
             if (!vertex.isVisited()) {
-                LinkedList<Vertex<E>> visited = dfsRecursive(vertex, new LinkedList<>());
-                LinkedList<E> component = new LinkedList<>();
-                Node<Vertex<E>> node = visited.getHead();
+                LinkedList<Vertex<E>> componentVertices = dfsRecursive(vertex, new LinkedList<>());
+                LinkedList<E> componentData = new LinkedList<>();
+
+                Node<Vertex<E>> node = componentVertices.getHead();
                 while (node != null) {
-                    component.insertLast(node.getData().getData());
+                    componentData.insertLast(node.getData().getData());
                     node = node.getNext();
                 }
-                components.insertLast(component);
+                components.insertLast(componentData);
             }
             current = current.getNext();
         }
+
         return components;
+    }
+
+    public boolean modifyEdgeWeight(E origin, E dest, int newWeight) {
+        if (!searchVertex(origin) || !searchVertex(dest)) return false;
+
+        Vertex<E> v1 = findVertex(origin);
+        Node<Edge<E>> current = v1.getListAdj().getHead();
+        while (current != null) {
+            if (current.getData().getRefDest().equals(findVertex(dest))) {
+                current.getData().setWeight(newWeight); // asegúrate de tener un setWeight en Edge
+                return true;
+            }
+            current = current.getNext();
+        }
+        return false;
     }
 
 }

@@ -155,6 +155,14 @@ public class Controller {
 		return urbanGraph.removeEdge(zone1, zone2);
 	}
 
+	public boolean updateEdgeWeight(String zone1, String zone2, int newWeight) throws ItemNotFound {
+		if (!urbanGraph.searchVertex(zone1) || !urbanGraph.searchVertex(zone2)) {
+			throw new ItemNotFound("Una o ambas zonas no existen.");
+		}
+
+		return urbanGraph.modifyEdgeWeight(zone1, zone2, newWeight);
+	}
+
 	// ==================== BÚSQUEDA DE RUTAS ====================
 	/**
 	 * Encuentra la ruta más corta entre dos zonas usando Dijkstra
