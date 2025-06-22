@@ -114,7 +114,7 @@ public class Interfaz extends JFrame {
         }
     }
 
-    private void abrirVentanaVertice(String nombre) {
+    private void abrirVentanaVertice(String nombre) throws ItemNotFound {
         JFrame ventana = new JFrame("Árbol B+ de zona: " + nombre);
         ventana.setSize(400, 300);
         ventana.setLocationRelativeTo(this);
@@ -122,7 +122,12 @@ public class Interfaz extends JFrame {
         JTextArea area = new JTextArea();
         area.setEditable(false);
 
-        String arbolTexto = controller.getZoneBPlusTreeAsString(nombre); // debes implementar esto
+        String arbolTexto = null; // debes implementar esto
+        try {
+            arbolTexto = controller.getZoneBPlusTreeAsString(nombre);
+        } catch (ItemNotFound e) {
+            throw new RuntimeException(e);
+        }
         area.setText(arbolTexto);
 
         JScrollPane scroll = new JScrollPane(area);
@@ -270,7 +275,11 @@ public class Interfaz extends JFrame {
             setOpaque(false);
             addMouseListener(new java.awt.event.MouseAdapter() {
                 public void mouseClicked(java.awt.event.MouseEvent evt) {
-                    abrirVentanaVertice(nombre);
+                    try {
+                        abrirVentanaVertice(nombre);
+                    } catch (ItemNotFound e) {
+                        throw new RuntimeException(e);
+                    }
                 }
             });
         }

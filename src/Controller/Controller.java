@@ -304,15 +304,19 @@ public class Controller {
 		System.out.println(zona.getArbolDistrito().toString());
 	}
 
-	public String getZoneBPlusTreeAsString(String zoneName) {
-		if (!urbanGraph.searchVertex(zoneName)) return "Zona no encontrada.";
+	public String getZoneBPlusTreeAsString(String zoneName) throws ItemNotFound {
+		Zona zona = buscarZona(zoneName);
+		if (zona == null) {
+			throw new ItemNotFound("La zona '" + zoneName + "' no existe.");
+		}
 
-		BTree<String> bplus = zoneTrees.get(zoneName);
-		if (bplus == null || bplus.getRoot() == null) return "Árbol vacío.";
+		BTree<Punto> arbol = zona.getArbolDistrito();
+		if (arbol.getRoot() == null) {
+			return "Árbol vacío.";
+		}
 
-		return bplus.toStructuredString(); // lo que tú implementes como representación
+		return arbol.toStructuredString(); // Este método debe estar en tu clase BTree
 	}
-
 
 	// ==================== ANÁLISIS DEL SISTEMA ====================
 	/**
