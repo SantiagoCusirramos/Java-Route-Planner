@@ -408,14 +408,13 @@ public class Interfaz extends JFrame {
                 int w=fm2.stringWidth(s),h=fm2.getHeight();
 
                 // Modificacion del subrayado del peso
-                g2.setColor(Color.YELLOW);
-                int extra = 20;
-                g2.fillRect(px - w/2 - extra/2, py - h/2 - 2, w + extra, h+6);
-
+                g2.setColor(new Color(255, 215, 0));
+                g2.fillRoundRect(px - w/2 - 5, py - h/2 - 2, w + 10, h + 4, 5, 5);
+                
                 // Tamaño del tipo de fuente del peso
-                g2.setColor(Color.RED);
-                g2.setFont(new Font("Arial",Font.BOLD,Math.max(14,radio/6)));
-                g2.drawString(s,px-w/2,py+fm2.getAscent()/2);
+                g2.setColor(Color.BLACK);
+                g2.setFont(new Font("Segoe UI", Font.BOLD, 14));
+                g2.drawString(s, px - w/2, py + fm2.getAscent()/2 - 2);
             }
         }
         private void drawArrowLine(Graphics2D g,int x1,int y1,int x2,int y2,int d,int h){
