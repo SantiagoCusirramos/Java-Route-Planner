@@ -5,6 +5,7 @@ import java.awt.*;
 
 import Controller.Controller;
 import DataStructure.LinkedList.LinkedList;
+import Exceptions.ExceptionIsEmpty;
 import Exceptions.ItemDuplicated;
 import Exceptions.ItemNotFound;
 import Controller.Zona;
@@ -48,7 +49,7 @@ public class Interfaz extends JFrame {
             }
         });
 
-        JPanel botones = new JPanel(new GridLayout(2, 6, 10, 10));
+        JPanel botones = new JPanel(new GridLayout(2, 7, 10, 10));
         botones.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
         JButton btnAgregarVertice = new JButton("Agregar vértice");
@@ -129,6 +130,13 @@ public class Interfaz extends JFrame {
         estiloBoton(btnZonasAisladas, new Color(59, 89, 182), Color.WHITE, 150, 40);
         btnZonasAisladas.addActionListener(e -> mostrarZonasAisladas());
 
+        JButton btnSistemaConectado = new JButton("Todo conectado");
+        estiloBoton(btnSistemaConectado, new Color(59, 89, 182), Color.WHITE, 180, 40);
+        btnSistemaConectado.addActionListener(e -> verificarSistemaConectado());
+
+        JButton btnRutaDijkstra = new JButton("Ruta más corta (Dijkstra)");
+        estiloBoton(btnRutaDijkstra, new Color(59, 89, 182), Color.WHITE, 200, 40);
+        btnRutaDijkstra.addActionListener(e -> mostrarRutaMasCortaDijkstra());
 
         botones.add(btnAgregarVertice);
         botones.add(btnAgregarArista);
@@ -142,6 +150,8 @@ public class Interfaz extends JFrame {
         botones.add(btnDetectarCiclo);
         botones.add(btnConexas);
         botones.add(btnZonasAisladas);
+        botones.add(btnSistemaConectado);
+        botones.add(btnRutaDijkstra);
         add(botones, BorderLayout.SOUTH);
 
         setVisible(true);
@@ -453,6 +463,48 @@ public class Interfaz extends JFrame {
         JOptionPane.showMessageDialog(this, sb.toString());
     }
 
+    private void verificarSistemaConectado() {
+        boolean conectado = controller.isSystemConnected();
+        if (conectado) {
+            JOptionPane.showMessageDialog(this, "Las urbanizaciones están completamente conectado.");
+        } else {
+            JOptionPane.showMessageDialog(this, "Las urbanizaciones NO están completamente conectado.");
+        }
+    }
+
+    private void mostrarRutaMasCortaDijkstra() {
+        if (vertices.length() < 2) {
+            JOptionPane.showMessageDialog(this, "Agrega al menos dos zonas.");
+            return;
+        }
+
+        String origen = (String) JOptionPane.showInputDialog(this,
+                "Zona origen:", "Ruta más corta",
+                JOptionPane.PLAIN_MESSAGE, null, vertices.toArray(), null);
+
+        String destino = (String) JOptionPane.showInputDialog(this,
+                "Zona destino:", "Ruta más corta",
+                JOptionPane.PLAIN_MESSAGE, null, vertices.toArray(), null);
+
+        if (origen == null || destino == null) return;
+
+        try {
+            LinkedList<String> camino = controller.findShortestPath(origen, destino);
+
+            if (camino == null || camino.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "No se encontró una ruta entre las zonas.");
+            } else {
+                StringBuilder ruta = new StringBuilder("Ruta más corta (Dijkstra):\n");
+                for (int i = 0; i < camino.length(); i++) {
+                    ruta.append(camino.getNodeAtIndex(i));
+                    if (i != camino.length() - 1) ruta.append(" → ");
+                }
+                JOptionPane.showMessageDialog(this, ruta.toString());
+            }
+        } catch (ItemNotFound | ExceptionIsEmpty ex) {
+            JOptionPane.showMessageDialog(this, "Error: " + ex.getMessage());
+        }
+    }
 
     class BotonVertice extends JComponent {
         private String nombre;

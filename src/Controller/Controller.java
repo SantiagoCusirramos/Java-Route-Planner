@@ -295,35 +295,6 @@ public class Controller {
 		return arbol.search(distrito);
 	}
 
-	/**
-	 * Muestra todos los distritos de una zona
-	 * @param zoneName Zona a mostrar
-	 * @throws ItemNotFound si la zona no existe
-	 */
-	public void showDistrictsOfZone(String zoneName) throws ItemNotFound {
-		Zona zona = buscarZona(zoneName);
-		if (zona == null) {
-			throw new ItemNotFound("La zona '" + zoneName + "' no existe.");
-		}
-
-		System.out.println("Distritos en la zona '" + zoneName + "':");
-		System.out.println(zona.getArbolDistrito().toString());
-	}
-
-	public String getZoneBPlusTreeAsString(String zoneName) throws ItemNotFound {
-		Zona zona = buscarZona(zoneName);
-		if (zona == null) {
-			throw new ItemNotFound("La zona '" + zoneName + "' no existe.");
-		}
-
-		BTree<Punto> arbol = zona.getArbolDistrito();
-		if (arbol.getRoot() == null) {
-			return "Árbol vacío.";
-		}
-
-		return arbol.toStructuredString(); // Este método debe estar en tu clase BTree
-	}
-
 	// ==================== ANÁLISIS DEL SISTEMA ====================
 	/**
 	 * Verifica si el sistema está conectado
@@ -368,34 +339,6 @@ public class Controller {
 		return isolatedZones;
 	}
 
-	// ==================== SIMULACIÓN DE ESCENARIOS ====================
-	/**
-	 * Cierra temporalmente una vía (elimina una arista)
-	 * @param zone1 Zona origen
-	 * @param zone2 Zona destino
-	 * @return true si se cierra correctamente
-	 * @throws ItemNotFound si la conexión no existe
-	 */
-	public boolean closeRoad(String zone1, String zone2) throws ItemNotFound {
-		return disconnectZones(zone1, zone2);
-	}
-
-	/**
-	 * Reabre una vía cerrada previamente
-	 * @param zone1 Zona origen
-	 * @param zone2 Zona destino
-	 * @param weight Peso de la conexión
-	 * @return true si se reabre correctamente
-	 * @throws ItemNotFound si las zonas no existen
-	 */
-	public boolean reopenRoad(String zone1, String zone2, int weight) throws ItemNotFound {
-		if (!urbanGraph.searchVertex(zone1) || !urbanGraph.searchVertex(zone2)) {
-			throw new ItemNotFound("Una o ambas zonas no existen");
-		}
-		urbanGraph.insertEdge(zone1, zone2, weight);
-		return true;
-	}
-
 	// ==================== MÉTODOS AUXILIARES ====================
 	/**
 	 * Busca una zona por su nombre
@@ -412,76 +355,7 @@ public class Controller {
 		return null;
 	}
 
-	/**
-	 * Obtiene el historial de rutas consultadas
-	 * @return Cola con el historial de rutas
-	 */
-	public LinkedQueue<String> getRouteHistory() {
-		return routeHistory;
-	}
-
-	/**
-	 * Obtiene las últimas N rutas consultadas
-	 * @param count Cantidad de rutas a obtener
-	 * @return Lista con las últimas rutas
-	 * @throws ExceptionIsEmpty si no hay rutas en historial
-	 */
-	public LinkedList<String> getRecentRoutes(int count) throws ExceptionIsEmpty {
-		LinkedList<String> recentRoutes = new LinkedList<>();
-		LinkedQueue<String> tempQueue = new LinkedQueue<>();
-		int added = 0;
-
-		while (!routeHistory.isEmpty()) {
-			tempQueue.enqueue(routeHistory.dequeue());
-		}
-
-		LinkedStack<String> tempStack = new LinkedStack<>();
-		while (!tempQueue.isEmpty()) {
-			String route = tempQueue.dequeue();
-			tempStack.push(route);
-			routeHistory.enqueue(route);
-		}
-
-		while (!tempStack.isEmpty() && added < count) {
-			recentRoutes.insertFirst(tempStack.pop());
-			added++;
-		}
-
-		return recentRoutes;
-	}
-
 	// ==================== MÉTODOS DE UTILIDAD ====================
-	/**
-	 * Obtiene el grafo urbano subyacente
-	 * @return El grafo urbano
-	 */
-	public GraphLink<String> getUrbanGraph() {
-		return urbanGraph;
-	}
-
-	/**
-	 * Obtiene estadísticas del sistema
-	 * @return Cadena con estadísticas
-	 */
-	public String getSystemStats() {
-		StringBuilder stats = new StringBuilder();
-		stats.append("=== ESTADÍSTICAS DEL SISTEMA ===\n");
-		stats.append("Total de zonas: ").append(zones.length()).append("\n");
-		stats.append("Sistema conectado: ").append(isSystemConnected() ? "Sí" : "No").append("\n");
-		stats.append("Zonas aisladas: ").append(getIsolatedZones().length()).append("\n");
-		stats.append("Rutas en historial: ").append(routeHistory.size()).append("\n");
-
-		return stats.toString();
-	}
-
-	/**
-	 * Reinicia completamente el sistema
-	 */
-	public void resetSystem() {
-		this.urbanGraph = new GraphLink<>(true, true);
-		this.zones = new LinkedList<>();
-		this.routeHistory = new LinkedQueue<>();
-	}
 
 	/**
 	 * Busca un edificio en todas las zonas y devuelve el nombre de la zona que lo contiene.
