@@ -367,7 +367,29 @@ public class BTree<E extends Comparable<E>> {
         }
         return s;
     }
+
+    public String toStructuredString() {
+        StringBuilder sb = new StringBuilder();
+        toStructuredString(root, sb, 0);
+        return sb.toString();
+    }
+
+    private void toStructuredString(BNode<E> node, StringBuilder sb, int level) {
+        if (node == null) return;
+
+        for (int i = 0; i < node.count; i++) {
+            for (int j = 0; j < level; j++) sb.append("   ");
+            sb.append("- ").append(node.keys.get(i)).append("\n");
+        }
+
+        for (int i = 0; i <= node.count; i++) {
+            toStructuredString(node.childs.get(i), sb, level + 1);
+        }
+    }
+
 }
+
+
 
 ////    ---------------------------Borrow------------------------------------
 //

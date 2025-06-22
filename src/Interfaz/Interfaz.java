@@ -70,6 +70,14 @@ public class Interfaz extends JFrame {
                 throw new RuntimeException(ex);
             }
         });
+        JButton btnModificarPeso = new JButton("Modificar peso");
+        btnModificarPeso.addActionListener(e -> {
+            try {
+                modificarPesoArista();
+            } catch (ItemNotFound ex) {
+                throw new RuntimeException(ex);
+            }
+        });
         JButton btnBuscarVertice = new JButton("Buscar vértice");
         btnBuscarVertice.addActionListener(e -> buscarVertice());
 
@@ -78,6 +86,7 @@ public class Interfaz extends JFrame {
         botones.add(btnEliminarVertice);
         botones.add(btnEliminarArista);
         botones.add(btnBuscarVertice);
+        botones.add(btnModificarPeso);
         add(botones, BorderLayout.SOUTH);
 
         setVisible(true);
@@ -106,10 +115,18 @@ public class Interfaz extends JFrame {
     }
 
     private void abrirVentanaVertice(String nombre) {
-        JFrame ventana = new JFrame("Vértice: " + nombre);
-        ventana.setSize(300, 150);
+        JFrame ventana = new JFrame("Árbol B+ de zona: " + nombre);
+        ventana.setSize(400, 300);
         ventana.setLocationRelativeTo(this);
-        ventana.add(new JLabel("Este es el vértice: " + nombre, SwingConstants.CENTER));
+
+        JTextArea area = new JTextArea();
+        area.setEditable(false);
+
+        String arbolTexto = controller.getZoneBPlusTreeAsString(nombre); // debes implementar esto
+        area.setText(arbolTexto);
+
+        JScrollPane scroll = new JScrollPane(area);
+        ventana.add(scroll);
         ventana.setVisible(true);
     }
 
@@ -194,6 +211,44 @@ public class Interfaz extends JFrame {
             if (a.origen.equals(origen) && a.destino.equals(destino)) { aristas.removeAtIndex(i); break; }
         }
         panel.repaint();
+    }
+
+    private void modificarPesoArista() throws ItemNotFound {
+        if (aristas.length() == 0) {
+            JOptionPane.showMessageDialog(this, "No hay aristas.");
+            return;
+        }
+
+        String[] vs = new String[vertices.length()];
+        for (int i = 0; i < vs.length; i++) vs[i] = vertices.getNodeAtIndex(i);
+        String origen = (String) JOptionPane.showInputDialog(this, "Origen:", "Modificar Peso", JOptionPane.PLAIN_MESSAGE, null, vs, null);
+        String destino = (String) JOptionPane.showInputDialog(this, "Destino:", "Modificar Peso", JOptionPane.PLAIN_MESSAGE, null, vs, null);
+        if (origen == null || destino == null) return;
+
+        String inputPeso = JOptionPane.showInputDialog(this, "Nuevo peso:");
+        if (inputPeso == null) return;
+
+        int nuevoPeso;
+        try {
+            nuevoPeso = Integer.parseInt(inputPeso);
+        } catch (NumberFormatException e) {
+            JOptionPane.showMessageDialog(this, "Peso inválido.");
+            return;
+        }
+
+        if (controller.updateEdgeWeight(origen, destino, nuevoPeso)) {
+            // actualiza en la lista gráfica
+            for (int i = 0; i < aristas.length(); i++) {
+                AristaGrafica a = aristas.getNodeAtIndex(i);
+                if (a.origen.equals(origen) && a.destino.equals(destino)) {
+                    a.peso = nuevoPeso;
+                    break;
+                }
+            }
+            panel.repaint();
+        } else {
+            JOptionPane.showMessageDialog(this, "No se encontró la arista.");
+        }
     }
 
     private void buscarVertice() {
