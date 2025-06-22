@@ -459,7 +459,7 @@ public class Interfaz extends JFrame {
         }
 
         String input = JOptionPane.showInputDialog(this,
-                "Ingrese la zoan seleccionada");
+                "Ingrese la zona seleccionada");
         if (input == null || input.trim().isEmpty()) {
             return;
         }
