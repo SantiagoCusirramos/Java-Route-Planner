@@ -87,6 +87,10 @@ public class GraphLink<E> {
         return null;
     }
 
+    public boolean existVertex(E data) {
+        return findVertex(data) != null;
+    }
+
     public boolean searchEdge(E data1, E data2, int weight) {
         // si es necesario :v
         if(data1 == null || data2 == null){
