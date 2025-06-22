@@ -36,9 +36,9 @@ public class InterfazArbol extends JFrame {
 
         // ------ Botones abajo -------
         JPanel botones = new JPanel();
-        botones.add(crearBoton("Agregar Distrito", () -> accionAgregar(panel)));
-        botones.add(crearBoton("Eliminar Distrito", () -> accionEliminar(panel)));
-        botones.add(crearBoton("Buscar Distrito", this::accionBuscar));
+        botones.add(crearBoton("Agregar Edificio", () -> accionAgregar(panel)));
+        botones.add(crearBoton("Eliminar Edificio", () -> accionEliminar(panel)));
+        botones.add(crearBoton("Buscar Edificio", this::accionBuscar));
         add(botones, BorderLayout.SOUTH);
 
         setVisible(true);
@@ -51,11 +51,11 @@ public class InterfazArbol extends JFrame {
     }
 
     private void accionAgregar(ArbolPanel panel) {
-        String name = JOptionPane.showInputDialog(this, "Nuevo distrito:");
+        String name = JOptionPane.showInputDialog(this, "Nuevo edificio:");
         if (name != null && !name.trim().isEmpty()) {
             try {
                 boolean ok = controller.addDistrictToZone(zona.getNombre(), name);
-                if (!ok) JOptionPane.showMessageDialog(this, "Distrito ya existe.");
+                if (!ok) JOptionPane.showMessageDialog(this, "Edificio ya existe.");
             } catch (ItemNotFound ex) {
                 JOptionPane.showMessageDialog(this, ex.getMessage());
             }
@@ -64,11 +64,11 @@ public class InterfazArbol extends JFrame {
     }
 
     private void accionEliminar(ArbolPanel panel) {
-        String name = JOptionPane.showInputDialog(this, "Distrito a eliminar:");
+        String name = JOptionPane.showInputDialog(this, "Edificio a eliminar:");
         if (name != null && !name.trim().isEmpty()) {
             try {
                 boolean ok = controller.removeDistrictFromZone(zona.getNombre(), name);
-                if (!ok) JOptionPane.showMessageDialog(this, "Distrito no existe.");
+                if (!ok) JOptionPane.showMessageDialog(this, "Edificio no existe.");
             } catch (ItemNotFound ex) {
                 JOptionPane.showMessageDialog(this, ex.getMessage());
             }
@@ -77,11 +77,11 @@ public class InterfazArbol extends JFrame {
     }
 
     private void accionBuscar() {
-        String name = JOptionPane.showInputDialog(this, "Distrito a buscar:");
+        String name = JOptionPane.showInputDialog(this, "Edificio a buscar:");
         if (name != null && !name.trim().isEmpty()) {
             try {
                 boolean existe = controller.searchDistrictInZone(zona.getNombre(), name);
-                JOptionPane.showMessageDialog(this, existe ? "Distrito existe" : "No encontrado");
+                JOptionPane.showMessageDialog(this, existe ? "Edificio existe" : "No encontrado");
             } catch (ItemNotFound ex) {
                 JOptionPane.showMessageDialog(this, ex.getMessage());
             }
