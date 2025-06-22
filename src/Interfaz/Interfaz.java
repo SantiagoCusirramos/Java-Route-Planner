@@ -48,7 +48,9 @@ public class Interfaz extends JFrame {
             }
         });
 
-        JPanel botones = new JPanel();
+        JPanel botones = new JPanel(new GridLayout(2, 6, 10, 10));
+        botones.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+
         JButton btnAgregarVertice = new JButton("Agregar vértice");
         estiloBoton(btnAgregarVertice, new Color(59, 89, 182), Color.WHITE, 150, 40);
         btnAgregarVertice.addActionListener(e -> {
