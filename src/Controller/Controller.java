@@ -502,4 +502,19 @@ public class Controller {
 
 		return null; // No se encontró en ninguna zona
 	}
+
+	public void renameZone(String actual, String nuevo) throws ItemDuplicated, ItemNotFound {
+		if (!urbanGraph.existVertex(actual)) {
+			throw new ItemNotFound("La zona '" + actual + "' no existe.");
+		}
+
+		if (urbanGraph.existVertex(nuevo)) {
+			throw new ItemDuplicated("La zona '" + nuevo + "' ya existe.");
+		}
+
+		Zona zona = buscarZona(actual);  // Recupera el objeto asociado al nombre actual
+		urbanGraph.renameVertex(actual, nuevo);  // Renombra el vértice en el grafo
+		zona.setNombre(nuevo);  // Actualiza el nombre en el objeto Zona
+	}
+
 }

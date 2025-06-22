@@ -176,6 +176,20 @@ public class LinkedList<T> {
         return head;
     }
 
+    public boolean set(int index, T nuevoValor) {
+        if (index < 0 || index >= countNodes) {
+            return false;
+        }
+
+        Node<T> current = head;
+        for (int i = 0; i < index; i++) {
+            current = current.getNext();
+        }
+
+        current.setData(nuevoValor);
+        return true;
+    }
+
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();

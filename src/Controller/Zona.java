@@ -11,6 +11,10 @@ public class Zona {
         this.arbolDistrito = new BTree<>(orden);
     }
 
+    public void setNombre(String nombre) {
+        this.nombre = nombre;
+    }
+
     public String getNombre() {
         return nombre;
     }

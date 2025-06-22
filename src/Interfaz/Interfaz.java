@@ -76,6 +76,15 @@ public class Interfaz extends JFrame {
                 throw new RuntimeException(ex);
             }
         });
+        JButton btnModificarVertice = new JButton("Modificar vértice");
+        estiloBoton(btnModificarVertice, new Color(59, 89, 182), Color.WHITE, 150, 40);
+        btnModificarVertice.addActionListener(e -> {
+            try {
+                modificarNombreVertice();
+            } catch (ItemDuplicated | ItemNotFound ex) {
+                JOptionPane.showMessageDialog(this, "Error: " + ex.getMessage());
+            }
+        });
         JButton btnEliminarArista = new JButton("Eliminar arista");
         estiloBoton(btnEliminarArista, new Color(59, 89, 182), Color.WHITE, 150, 40);
         btnEliminarArista.addActionListener(e -> {
@@ -102,13 +111,35 @@ public class Interfaz extends JFrame {
         estiloBoton(btnBuscarEdificio, new Color(59, 89, 182), Color.WHITE, 150, 40);
         btnBuscarEdificio.addActionListener(e -> buscarEdificio());
 
+        JButton btnExplorarBFS = new JButton("Explorar BFS");
+        estiloBoton(btnExplorarBFS, new Color(59, 89, 182), Color.WHITE, 150, 40);
+        btnExplorarBFS.addActionListener(e -> explorarBFS());
+
+        JButton btnDetectarCiclo = new JButton("Detectar ciclo");
+        estiloBoton(btnDetectarCiclo, new Color(59, 89, 182), Color.WHITE, 150, 40);
+        btnDetectarCiclo.addActionListener(e -> detectarCiclo());
+
+        JButton btnConexas = new JButton("Componentes conexas");
+        estiloBoton(btnConexas, new Color(59, 89, 182), Color.WHITE, 170, 40);
+        btnConexas.addActionListener(e -> mostrarComponentesConexas());
+
+        JButton btnZonasAisladas = new JButton("Zonas aisladas");
+        estiloBoton(btnZonasAisladas, new Color(59, 89, 182), Color.WHITE, 150, 40);
+        btnZonasAisladas.addActionListener(e -> mostrarZonasAisladas());
+
+
         botones.add(btnAgregarVertice);
         botones.add(btnAgregarArista);
         botones.add(btnEliminarVertice);
+        botones.add(btnModificarVertice);
         botones.add(btnEliminarArista);
         botones.add(btnModificarPeso);
         botones.add(btnBuscarVertice);
         botones.add(btnBuscarEdificio);
+        botones.add(btnExplorarBFS);
+        botones.add(btnDetectarCiclo);
+        botones.add(btnConexas);
+        botones.add(btnZonasAisladas);
         add(botones, BorderLayout.SOUTH);
 
         setVisible(true);
@@ -134,6 +165,55 @@ public class Interfaz extends JFrame {
             panel.add(boton);
             panel.repaint();
         }
+    }
+
+    private void modificarNombreVertice() throws ItemDuplicated, ItemNotFound {
+        if (vertices.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "No hay vértices.");
+            return;
+        }
+
+        String[] opciones = new String[vertices.length()];
+        for (int i = 0; i < opciones.length; i++) {
+            opciones[i] = vertices.getNodeAtIndex(i);
+        }
+
+        String actual = (String) JOptionPane.showInputDialog(this,
+                "Seleccione vértice a renombrar:", "Modificar vértice",
+                JOptionPane.PLAIN_MESSAGE, null, opciones, null);
+
+        if (actual == null || actual.isEmpty()) return;
+
+        String nuevo = JOptionPane.showInputDialog(this, "Nuevo nombre:");
+        if (nuevo == null || nuevo.isEmpty()) return;
+
+        if (actual.equals(nuevo)) {
+            JOptionPane.showMessageDialog(this, "El nombre es el mismo.");
+            return;
+        }
+
+        if (vertices.search(nuevo)) {
+            throw new ItemDuplicated("Ya existe un vértice con ese nombre.");
+        }
+
+        controller.renameZone(actual, nuevo);
+
+        // Actualizar en la lista de vértices
+        int idx = vertices.findIndex(actual);
+        vertices.set(idx, nuevo);
+
+        // Actualizar botones
+        BotonVertice boton = (BotonVertice) botonesVer.getNodeAtIndex(idx);
+        boton.nombre = nuevo;
+        panel.repaint();
+
+        // Actualizar aristas
+        for (int i = 0; i < aristas.length(); i++) {
+            AristaGrafica a = aristas.getNodeAtIndex(i);
+            if (a.origen.equals(actual)) a.origen = nuevo;
+            if (a.destino.equals(actual)) a.destino = nuevo;
+        }
+        panel.repaint();
     }
 
     private void abrirVentanaVertice(String nombre) throws ItemNotFound {
@@ -292,8 +372,88 @@ public class Interfaz extends JFrame {
         }
     }
 
+    private void explorarBFS() {
+        if (vertices.length() < 2) {
+            JOptionPane.showMessageDialog(this, "Agrega al menos dos zonas.");
+            return;
+        }
+        String origen = (String) JOptionPane.showInputDialog(this, "Zona origen:", "Exploración BFS",
+                JOptionPane.PLAIN_MESSAGE, null, vertices.toArray(), null);
+        String destino = (String) JOptionPane.showInputDialog(this, "Zona destino:", "Exploración BFS",
+                JOptionPane.PLAIN_MESSAGE, null, vertices.toArray(), null);
+        if (origen == null || destino == null) return;
+
+        try {
+            LinkedList<String> camino = controller.findPath(origen, destino);
+            if (camino == null || camino.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "No se encontró camino entre las zonas.");
+            } else {
+                StringBuilder ruta = new StringBuilder("Ruta BFS:\n");
+                for (int i = 0; i < camino.length(); i++) {
+                    ruta.append(camino.getNodeAtIndex(i));
+                    if (i != camino.length() - 1) ruta.append(" -> ");
+                }
+                JOptionPane.showMessageDialog(this, ruta.toString());
+            }
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Error en la búsqueda: " + e.getMessage());
+        }
+    }
+
+    private void detectarCiclo() {
+        if (vertices.length() < 3) {
+            JOptionPane.showMessageDialog(this, "Agrega al menos 3 zonas para detectar un ciclo.");
+            return;
+        }
+
+        String input = JOptionPane.showInputDialog(this,
+                "Ingrese zonas separadas por coma (ej: A,B,C,A):");
+        if (input == null || input.trim().isEmpty()) return;
+
+        String[] zonas = input.split(",");
+        LinkedList<String> ruta = new LinkedList<>();
+        for (String z : zonas) ruta.insertLast(z.trim());
+
+        boolean esCiclo = controller.isValidCycle(ruta);
+        JOptionPane.showMessageDialog(this,
+                esCiclo ? "Es un ciclo válido." : "No es un ciclo válido.");
+    }
+
+    private void mostrarComponentesConexas() {
+        LinkedList<LinkedList<String>> componentes = controller.getConnectedComponents();
+        StringBuilder sb = new StringBuilder("Componentes conexas:\n\n");
+
+        for (int i = 0; i < componentes.length(); i++) {
+            LinkedList<String> comp = componentes.getNodeAtIndex(i);
+            sb.append("Componente ").append(i + 1).append(": ");
+            for (int j = 0; j < comp.length(); j++) {
+                sb.append(comp.getNodeAtIndex(j));
+                if (j != comp.length() - 1) sb.append(", ");
+            }
+            sb.append("\n");
+        }
+
+        JOptionPane.showMessageDialog(this, sb.toString());
+    }
+
+    private void mostrarZonasAisladas() {
+        LinkedList<String> aisladas = controller.getIsolatedZones();
+        if (aisladas.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "No hay zonas aisladas.");
+            return;
+        }
+
+        StringBuilder sb = new StringBuilder("Zonas aisladas:\n");
+        for (int i = 0; i < aisladas.length(); i++) {
+            sb.append("- ").append(aisladas.getNodeAtIndex(i)).append("\n");
+        }
+
+        JOptionPane.showMessageDialog(this, sb.toString());
+    }
+
+
     class BotonVertice extends JComponent {
-        private final String nombre;
+        private String nombre;
         private final Image imagen;
 
         BotonVertice(String nombre, ImageIcon icono) {
@@ -311,6 +471,11 @@ public class Interfaz extends JFrame {
                     }
                 }
             });
+        }
+
+        public void setNombre(String nuevo) {
+            this.nombre = nuevo;
+            repaint(); // Redibuja el componente para reflejar el nuevo nombre
         }
 
         @Override protected void paintComponent(Graphics g) {
