@@ -550,25 +550,21 @@ public class GraphLink<E> {
         resetVisitedFlags();
 
         Node<Vertex<E>> current = listVertex.getHead();
-
         while (current != null) {
             Vertex<E> vertex = current.getData();
             if (!vertex.isVisited()) {
-                LinkedList<Vertex<E>> componentVertices = dfsRecursive(vertex, new LinkedList<>());
-                LinkedList<E> componentData = new LinkedList<>();
-
-                Node<Vertex<E>> node = componentVertices.getHead();
+                LinkedList<Vertex<E>> visited = dfsRecursive(vertex, new LinkedList<>());
+                LinkedList<E> component = new LinkedList<>();
+                Node<Vertex<E>> node = visited.getHead();
                 while (node != null) {
-                    componentData.insertLast(node.getData().getData());
+                    component.insertLast(node.getData().getData());
                     node = node.getNext();
                 }
-                components.insertLast(componentData);
+                components.insertLast(component);
             }
             current = current.getNext();
         }
-
         return components;
     }
-
 
 }
