@@ -52,7 +52,7 @@ public class Interfaz extends JFrame {
         JPanel botones = new JPanel(new GridLayout(2, 7, 10, 10));
         botones.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-        JButton btnAgregarVertice = new JButton("Agregar Ciudad");
+        JButton btnAgregarVertice = new JButton("Agregar Urbanizacin");
         estiloBoton(btnAgregarVertice, new Color(59, 89, 182), Color.WHITE, 150, 40);
         btnAgregarVertice.addActionListener(e -> {
             try {
@@ -70,7 +70,7 @@ public class Interfaz extends JFrame {
                 throw new RuntimeException(ex);
             }
         });
-        JButton btnEliminarVertice = new JButton("Eliminar Ciudad");
+        JButton btnEliminarVertice = new JButton("Eliminar Urbanizacin");
         estiloBoton(btnEliminarVertice, new Color(59, 89, 182), Color.WHITE, 150, 40);
         btnEliminarVertice.addActionListener(e -> {
             try {
@@ -79,7 +79,7 @@ public class Interfaz extends JFrame {
                 throw new RuntimeException(ex);
             }
         });
-        JButton btnModificarVertice = new JButton("Modificar Ciudad");
+        JButton btnModificarVertice = new JButton("Modificar Urbanizacin");
         estiloBoton(btnModificarVertice, new Color(59, 89, 182), Color.WHITE, 150, 40);
         btnModificarVertice.addActionListener(e -> {
             try {
@@ -106,7 +106,7 @@ public class Interfaz extends JFrame {
                 throw new RuntimeException(ex);
             }
         });
-        JButton btnBuscarVertice = new JButton("Buscar Ciudad");
+        JButton btnBuscarVertice = new JButton("Buscar Urbanización");
         estiloBoton(btnBuscarVertice, new Color(59, 89, 182), Color.WHITE, 150, 40);
         btnBuscarVertice.addActionListener(e -> buscarVertice());
 
@@ -132,7 +132,7 @@ public class Interfaz extends JFrame {
         estiloBoton(btnConexas, new Color(59, 89, 182), Color.WHITE, 170, 40);
         btnConexas.addActionListener(e -> mostrarComponentesConexas());
 
-        JButton btnZonasAisladas = new JButton("Zonas aisladas");
+        JButton btnZonasAisladas = new JButton("Urbanizaciones aisladas");
         estiloBoton(btnZonasAisladas, new Color(59, 89, 182), Color.WHITE, 150, 40);
         btnZonasAisladas.addActionListener(e -> mostrarZonasAisladas());
 
@@ -489,11 +489,11 @@ public class Interfaz extends JFrame {
     private void mostrarZonasAisladas() {
         LinkedList<String> aisladas = controller.getIsolatedZones();
         if (aisladas.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "No hay zonas aisladas.");
+            JOptionPane.showMessageDialog(this, "No hay urbanizaciones aisladas.");
             return;
         }
 
-        StringBuilder sb = new StringBuilder("Zonas aisladas:\n");
+        StringBuilder sb = new StringBuilder("Urbanizaciones aisladas:\n");
         for (int i = 0; i < aisladas.length(); i++) {
             sb.append("- ").append(aisladas.getNodeAtIndex(i)).append("\n");
         }
