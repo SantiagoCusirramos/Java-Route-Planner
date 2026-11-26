@@ -5,9 +5,9 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>io.github.santiagocusirramos</groupId>
-    <artifactId>rutas-minimas</artifactId>
+    <artifactId>java-route-planner</artifactId>
     <version>1.0.0</version>
-    <name>Rutas Mínimas</name>
+    <name>Java-Route-Planner</name>
 
     <properties>
         <maven.compiler.release>21</maven.compiler.release>

@@ -9,7 +9,7 @@ La descripción general está en el [README](README.md).
 
 ### Origen
 
-- Proyecto final en equipo de Ingeniería de Sistemas, UCSM. Se desarrolló entre el 2 y el 22 de junio de 2025 en el repo del curso `UCSM2/py-final-2025-pfa25_03` (108 commits).
+- Proyecto final en equipo de Ingeniería de Sistemas, UCSM. Se desarrolló entre el 2 y el 22 de junio de 2025 con 108 commits. La primera versión se publicó en la organización `UCSM2` (`py-final-2025-pfa25_03`), pero el proyecto es del equipo; esta es la versión que sigue en el GitHub personal de Santiago.
 - **Equipo:** Joaquín Yato, Fabián Huamani, Ángel Salas Zapata y Santiago Cusirramos.
 - Las estructuras de datos vienen de las prácticas del curso de Estructuras de Datos y Algoritmos. Las versiones completas de esas prácticas están en el repo **Java-Algorithms**.
 - **Regla del proyecto:** nada de `java.util` para las estructuras. Todo se hizo a mano: listas, pilas, colas, cola de prioridad, árbol B y grafo.
@@ -107,7 +107,7 @@ Cada uno tiene su caso en `src/test/java/checks/RegressionChecks.java`.
 En orden. Cada paso es chico y se puede hacer en una sesión:
 
 1. **Probar la interfaz a mano** después de la limpieza: crear zonas, calles, rutas y edificios.
-2. **JUnit 5 + GitHub Actions**: convertir `RegressionChecks` en tests y correrlos en cada push.
+2. **Pruebas con JUnit 5 + GitHub Actions**: convertir `RegressionChecks` en tests de JUnit y correrlos en cada push. Hay que agregar la dependencia de JUnit al `pom.xml` y descargarla. Después, sumar tests por estructura: lista, pila, cola, árbol B y grafo.
 3. **Medir antes de optimizar**: un generador de grafos grandes (1k, 10k y 100k zonas) y tiempos de Dijkstra y BFS. Hay que guardar los resultados.
 4. **Heap binario** para la cola de prioridad: Dijkstra pasa a O((V+E) log V).
 5. **Índice de vértices** (tabla hash propia o mapa) para que `findVertex` sea O(1).

@@ -1,4 +1,6 @@
-# Rutas Mínimas
+# Java-Route-Planner
+
+*Rutas Mínimas*: route planning over a city graph.
 
 Desktop app (Java Swing) for modeling a city as a **directed weighted graph** of neighborhoods (*urbanizaciones*) and finding routes between them.
 Each neighborhood also stores its buildings in a **B-Tree**.
@@ -27,7 +29,7 @@ Requires Java 21 and Maven.
 
 ```bash
 mvn package
-java -jar target/rutas-minimas-1.0.0.jar
+java -jar target/java-route-planner-1.0.0.jar
 ```
 
 Or without the jar: `mvn compile` and then `java -cp target/classes ui.Main`.
@@ -64,7 +66,7 @@ MainWindow ──► CityController ──► Graph<String>  ──► Dijkstra 
 
 ## Project history
 
-- **June 2025:** built as a team in the course repo (`UCSM2/py-final-2025-pfa25_03`), with 108 commits.
+- **June 2025:** built by the team, with 108 commits. The first version was published under the `UCSM2` organization (`py-final-2025-pfa25_03`).
 - **November 2026:** moved to this repo with its full history:
   - Reorganized into a Maven layout with descriptive names.
   - Fixed 11 bugs: broken BFS paths, Dijkstra "routes" when no path existed, B-Tree deletion, cycle detection, among others.
