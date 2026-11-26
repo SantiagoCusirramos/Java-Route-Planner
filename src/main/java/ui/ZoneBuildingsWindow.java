@@ -54,7 +54,7 @@ public class ZoneBuildingsWindow extends JFrame {
         String name = JOptionPane.showInputDialog(this, "Nuevo edificio:");
         if (name != null && !name.trim().isEmpty()) {
             try {
-                boolean ok = controller.addDistrictToZone(zona.getNombre(), name);
+                boolean ok = controller.addDistrictToZone(zona.getNombre(), name.trim());
                 if (!ok) JOptionPane.showMessageDialog(this, "Edificio ya existe.");
             } catch (ItemNotFound ex) {
                 JOptionPane.showMessageDialog(this, ex.getMessage());
@@ -67,7 +67,7 @@ public class ZoneBuildingsWindow extends JFrame {
         String name = JOptionPane.showInputDialog(this, "Edificio a eliminar:");
         if (name != null && !name.trim().isEmpty()) {
             try {
-                boolean ok = controller.removeDistrictFromZone(zona.getNombre(), name);
+                boolean ok = controller.removeDistrictFromZone(zona.getNombre(), name.trim());
                 if (!ok) JOptionPane.showMessageDialog(this, "Edificio no existe.");
             } catch (ItemNotFound ex) {
                 JOptionPane.showMessageDialog(this, ex.getMessage());
@@ -80,7 +80,7 @@ public class ZoneBuildingsWindow extends JFrame {
         String name = JOptionPane.showInputDialog(this, "Edificio a buscar:");
         if (name != null && !name.trim().isEmpty()) {
             try {
-                boolean existe = controller.searchDistrictInZone(zona.getNombre(), name);
+                boolean existe = controller.searchDistrictInZone(zona.getNombre(), name.trim());
                 JOptionPane.showMessageDialog(this, existe ? "Edificio existe" : "No encontrado");
             } catch (ItemNotFound ex) {
                 JOptionPane.showMessageDialog(this, ex.getMessage());

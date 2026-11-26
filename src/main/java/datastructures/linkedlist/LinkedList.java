@@ -19,6 +19,7 @@ public class LinkedList<T> {
 
     public void destroyList() {
         head = null;
+        countNodes = 0;
     }
 
     public int findIndex(T nodo) {
@@ -73,6 +74,7 @@ public class LinkedList<T> {
         }
         if (head.getData().equals(valor)) {
             head = head.getNext();
+            this.countNodes--;
             return true;
         }
 

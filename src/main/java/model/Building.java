@@ -1,15 +1,11 @@
 package model;
 
-import datastructures.linkedlist.LinkedList;
-
 public class Building implements Comparable<Building> {
     private String nombre;
-    private LinkedList<BuildingConnection> conexiones;
 
     public Building(String nombre) {
         if (nombre == null) throw new IllegalArgumentException("Nombre nulo");
         this.nombre = nombre;
-        this.conexiones = new LinkedList<>();
     }
 
     public String getNombre() {
@@ -32,14 +28,6 @@ public class Building implements Comparable<Building> {
     @Override
     public int hashCode() {
         return nombre.toLowerCase().hashCode();
-    }
-
-    public void agregarConexion(Building destino, int peso) {
-        conexiones.insertLast(new BuildingConnection(destino, peso));
-    }
-
-    public LinkedList<BuildingConnection> getConexiones() {
-        return conexiones;
     }
 
     @Override

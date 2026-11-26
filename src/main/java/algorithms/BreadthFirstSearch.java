@@ -32,23 +32,25 @@ public class BreadthFirstSearch<E> {
         if (start == null || end == null || endData == null) return null;
         
         LinkedQueue<Vertex<E>> queue = new LinkedQueue<>();
-        LinkedList<Vertex<E>> parents = new LinkedList<>();
-        
+        // Listas paralelas: discovered[i] fue descubierto desde parentOf[i]
+        LinkedList<Vertex<E>> discovered = new LinkedList<>();
+        LinkedList<Vertex<E>> parentOf = new LinkedList<>();
+
         queue.enqueue(start);
         start.setVisited(true);
-        parents.insertLast(null);
-        
+        discovered.insertLast(start);
+        parentOf.insertLast(null);
+
         while (!queue.isEmpty()) {
             Vertex<E> current = queue.dequeue();
-            Vertex<E> currentParent = parents.removeFirst();
-            
+
             if (current.equals(end)) {
-                return buildPath(current, currentParent, parents);
+                return buildPath(end, discovered, parentOf);
             }
-            
-            enqueueNeighborsWithParents(current, queue, parents);
+
+            enqueueNeighborsWithParents(current, queue, discovered, parentOf);
         }
-        
+
         return null;
     }
     
@@ -74,52 +76,32 @@ public class BreadthFirstSearch<E> {
         }
     }
     
-    private void enqueueNeighborsWithParents(Vertex<E> vertex, LinkedQueue<Vertex<E>> queue, LinkedList<Vertex<E>> parents) {
+    private void enqueueNeighborsWithParents(Vertex<E> vertex, LinkedQueue<Vertex<E>> queue,
+                                            LinkedList<Vertex<E>> discovered, LinkedList<Vertex<E>> parentOf) {
         Node<Edge<E>> edgeNode = vertex.getListAdj().getHead();
-        
+
         while (edgeNode != null) {
             Vertex<E> neighbor = edgeNode.getData().getRefDest();
             if (!neighbor.isVisited()) {
                 neighbor.setVisited(true);
                 queue.enqueue(neighbor);
-                parents.insertLast(vertex);
+                discovered.insertLast(neighbor);
+                parentOf.insertLast(vertex);
             }
             edgeNode = edgeNode.getNext();
         }
     }
     
-    private LinkedList<E> buildPath(Vertex<E> target, Vertex<E> targetParent, LinkedList<Vertex<E>> parents) {
+    // Reconstruye el camino yendo de cada vértice a su padre hasta llegar al origen
+    private LinkedList<E> buildPath(Vertex<E> target, LinkedList<Vertex<E>> discovered, LinkedList<Vertex<E>> parentOf) {
         LinkedList<E> path = new LinkedList<>();
-        LinkedList<Vertex<E>> pathVertices = new LinkedList<>();
-        
-        // Reconstruir la cadena de vértices desde el destino
         Vertex<E> current = target;
-        Vertex<E> parent = targetParent;
-        
+
         while (current != null) {
-            pathVertices.insertFirst(current);
-            current = parent;
-            parent = (current != null) ? findParentInList(current, parents) : null;
+            path.insertFirst(current.getData());
+            current = parentOf.getNodeAtIndex(discovered.findIndex(current));
         }
-        
-        // Convertir vértices a datos
-        Node<Vertex<E>> node = pathVertices.getHead();
-        while (node != null) {
-            path.insertLast(node.getData().getData());
-            node = node.getNext();
-        }
-        
+
         return path;
-    }
-    
-    private Vertex<E> findParentInList(Vertex<E> child, LinkedList<Vertex<E>> parents) {
-        Node<Vertex<E>> node = parents.getHead();
-        while (node != null) {
-            if (node.getData() != null && node.getData().equals(child)) {
-                return node.getData();
-            }
-            node = node.getNext();
-        }
-        return null;
     }
 }

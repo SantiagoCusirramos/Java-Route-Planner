@@ -15,12 +15,18 @@ public class Edge<E> {
         this.weight = -1;
     }
 
+    // Dos aristas son iguales si llegan al mismo destino (el peso no cuenta)
+    @Override
     public boolean equals(Object o){
-        if(o instanceof Edge<?>){
-            Edge<E> e = (Edge<E>) o;
+        if(o instanceof Edge<?> e){
             return this.refDest.equals(e.refDest);
         }
         return false;
+    }
+
+    @Override
+    public int hashCode() {
+        return refDest.hashCode();
     }
 
     public Vertex<E> getRefDest() {

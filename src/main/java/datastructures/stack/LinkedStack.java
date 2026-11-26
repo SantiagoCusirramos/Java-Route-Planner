@@ -5,7 +5,7 @@ import datastructures.linkedlist.Node;
 
 public class LinkedStack<E> implements Stack<E> {
 	private Node<E> stack;
-	private static int counter = 0;
+	private int counter = 0;
 
 	public LinkedStack() {
 		this.stack = null;
@@ -37,6 +37,7 @@ public class LinkedStack<E> implements Stack<E> {
 
 	public void destroyStack(){
 		stack = null;
+		counter = 0;
 	}
 
 	public boolean isEmpty() {

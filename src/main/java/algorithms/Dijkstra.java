@@ -24,7 +24,7 @@ public class Dijkstra {
 
         LinkedList<VertexDistance<E>> distanceList = new LinkedList<>();
         LinkedList<VertexPredecessors<E>> predecessorsList = new LinkedList<>();
-        SortedListPriorityQueue priorityQueue = new SortedListPriorityQueue<>();
+        SortedListPriorityQueue<VertexDistance<E>> priorityQueue = new SortedListPriorityQueue<>();
 
         Node<Vertex<E>> current = graph.listVertex.getHead();
 
@@ -38,8 +38,13 @@ public class Dijkstra {
         priorityQueue.enqueue(new VertexDistance<>(startVertex, 0));
 
         while (!priorityQueue.isEmpty()) {
-            VertexDistance<E> currentVertexDistance = (VertexDistance<E>) priorityQueue.dequeue();
+            VertexDistance<E> currentVertexDistance = priorityQueue.dequeue();
             Vertex<E> currentVertex = currentVertexDistance.getVertex();
+
+            // Entrada vieja: ya se encontró una distancia menor para este vértice
+            if (currentVertexDistance.getDistance() > getDistance(distanceList, currentVertex)) {
+                continue;
+            }
 
             if (currentVertex.equals(endVertex)) {
                 break;
@@ -60,6 +65,11 @@ public class Dijkstra {
                 }
                 edgeNode = edgeNode.getNext();
             }
+        }
+
+        // Sin camino: el destino nunca recibió una distancia finita
+        if (getDistance(distanceList, endVertex) == Integer.MAX_VALUE) {
+            return new LinkedList<>();
         }
 
         return reconstructPath(predecessorsList, endVertex);

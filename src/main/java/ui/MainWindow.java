@@ -34,7 +34,8 @@ public class MainWindow extends JFrame {
         botonesVer = new LinkedList<>();
 
         setTitle("Editor de Grafo");
-        setSize(1990, 780);
+        setSize(1400, 820);
+        setLocationRelativeTo(null);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setLayout(new BorderLayout());
 
@@ -52,13 +53,13 @@ public class MainWindow extends JFrame {
         JPanel botones = new JPanel(new GridLayout(2, 7, 10, 10));
         botones.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-        JButton btnAgregarVertice = new JButton("Agregar Urbanizacin");
+        JButton btnAgregarVertice = new JButton("Agregar Urbanización");
         estiloBoton(btnAgregarVertice, new Color(59, 89, 182), Color.WHITE, 150, 40);
         btnAgregarVertice.addActionListener(e -> {
             try {
                 agregarVertice();
-            } catch (ItemDuplicated ex) {
-                throw new RuntimeException(ex);
+            } catch (ItemDuplicated | IllegalArgumentException ex) {
+                mostrarError(ex);
             }
         });
         JButton btnAgregarArista = new JButton("Agregar arista");
@@ -66,20 +67,20 @@ public class MainWindow extends JFrame {
         btnAgregarArista.addActionListener(e -> {
             try {
                 agregarArista();
-            } catch (ItemNotFound ex) {
-                throw new RuntimeException(ex);
+            } catch (ItemNotFound | IllegalArgumentException ex) {
+                mostrarError(ex);
             }
         });
-        JButton btnEliminarVertice = new JButton("Eliminar Urbanizacin");
+        JButton btnEliminarVertice = new JButton("Eliminar Urbanización");
         estiloBoton(btnEliminarVertice, new Color(59, 89, 182), Color.WHITE, 150, 40);
         btnEliminarVertice.addActionListener(e -> {
             try {
                 eliminarVertice();
-            } catch (ItemNotFound ex) {
-                throw new RuntimeException(ex);
+            } catch (ItemNotFound | IllegalArgumentException ex) {
+                mostrarError(ex);
             }
         });
-        JButton btnModificarVertice = new JButton("Modificar Urbanizacin");
+        JButton btnModificarVertice = new JButton("Modificar Urbanización");
         estiloBoton(btnModificarVertice, new Color(59, 89, 182), Color.WHITE, 150, 40);
         btnModificarVertice.addActionListener(e -> {
             try {
@@ -93,8 +94,8 @@ public class MainWindow extends JFrame {
         btnEliminarArista.addActionListener(e -> {
             try {
                 eliminarArista();
-            } catch (ItemNotFound ex) {
-                throw new RuntimeException(ex);
+            } catch (ItemNotFound | IllegalArgumentException ex) {
+                mostrarError(ex);
             }
         });
         JButton btnModificarPeso = new JButton("Modificar peso");
@@ -102,8 +103,8 @@ public class MainWindow extends JFrame {
         btnModificarPeso.addActionListener(e -> {
             try {
                 modificarPesoArista();
-            } catch (ItemNotFound ex) {
-                throw new RuntimeException(ex);
+            } catch (ItemNotFound | IllegalArgumentException ex) {
+                mostrarError(ex);
             }
         });
         JButton btnBuscarVertice = new JButton("Buscar Urbanización");
@@ -123,8 +124,8 @@ public class MainWindow extends JFrame {
         btnDetectarCiclo.addActionListener(e -> {
             try {
                 detectarCiclo();
-            } catch (ExceptionIsEmpty ex) {
-                throw new RuntimeException(ex);
+            } catch (ItemNotFound ex) {
+                mostrarError(ex);
             }
         });
 
@@ -163,9 +164,14 @@ public class MainWindow extends JFrame {
         setVisible(true);
     }
     
+    private void mostrarError(Exception ex) {
+        JOptionPane.showMessageDialog(this, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+    }
+
     private void agregarVertice() throws ItemDuplicated {
         String nombre = JOptionPane.showInputDialog(this, "Ingrese nombre del vértice:");
-        if (nombre != null && !nombre.isEmpty()) {
+        if (nombre != null && !nombre.trim().isEmpty()) {
+            nombre = nombre.trim();
             controller.addZone(nombre);
             vertices.insertLast(nombre);
 
@@ -203,7 +209,8 @@ public class MainWindow extends JFrame {
         if (actual == null || actual.isEmpty()) return;
 
         String nuevo = JOptionPane.showInputDialog(this, "Nuevo nombre:");
-        if (nuevo == null || nuevo.isEmpty()) return;
+        if (nuevo == null || nuevo.trim().isEmpty()) return;
+        nuevo = nuevo.trim();
 
         if (actual.equals(nuevo)) {
             JOptionPane.showMessageDialog(this, "El nombre es el mismo.");
@@ -263,6 +270,11 @@ public class MainWindow extends JFrame {
         String destino = (String) JOptionPane.showInputDialog(this, "Destino:", "Vertices", JOptionPane.PLAIN_MESSAGE, null, vs, null);
         if (origen == null || destino == null) return;
 
+        if (origen.equals(destino)) {
+            JOptionPane.showMessageDialog(this, "El origen y el destino deben ser zonas distintas.");
+            return;
+        }
+
         // No duplicar misma dirección
         for (int i = 0; i < aristas.length(); i++) {
             AristaGrafica ex = aristas.getNodeAtIndex(i);
@@ -285,10 +297,14 @@ public class MainWindow extends JFrame {
             try {
                 String ps = JOptionPane.showInputDialog(this, "Ingrese peso:");
                 if (ps == null) return;
-                peso = Integer.parseInt(ps);
+                peso = Integer.parseInt(ps.trim());
             } catch (NumberFormatException e) {
                 JOptionPane.showMessageDialog(this, "Peso inválido, usando 1");
                 peso = 1;
+            }
+            if (peso < 0) {
+                JOptionPane.showMessageDialog(this, "El peso no puede ser negativo.");
+                return;
             }
         }
         controller.connectZones(origen, destino, peso);
@@ -344,7 +360,6 @@ public class MainWindow extends JFrame {
         panel.repaint();
     }
 
-    //opcion para eliminar arista origen-destino no funciona correctamente, corregir
     private void eliminarArista() throws ItemNotFound {
         if (aristas.length() == 0) {
             JOptionPane.showMessageDialog(this, "No hay aristas.");
@@ -363,7 +378,6 @@ public class MainWindow extends JFrame {
         panel.repaint();
     }
 
-    //al modificar el peso de aristas dobles (de A a B y de B a A) solo se actualiza el valor de un lado, corregir
     private void modificarPesoArista() throws ItemNotFound {
         if (aristas.length() == 0) {
             JOptionPane.showMessageDialog(this, "No hay aristas.");
@@ -381,9 +395,13 @@ public class MainWindow extends JFrame {
 
         int nuevoPeso;
         try {
-            nuevoPeso = Integer.parseInt(inputPeso);
+            nuevoPeso = Integer.parseInt(inputPeso.trim());
         } catch (NumberFormatException e) {
             JOptionPane.showMessageDialog(this, "Peso inválido.");
+            return;
+        }
+        if (nuevoPeso < 0) {
+            JOptionPane.showMessageDialog(this, "El peso no puede ser negativo.");
             return;
         }
 
@@ -452,21 +470,22 @@ public class MainWindow extends JFrame {
         }
     }
 
-    private void detectarCiclo() throws ExceptionIsEmpty {
-        if (vertices.length() < 3) {
-            JOptionPane.showMessageDialog(this, "Agrega al menos 3 zonas para detectar un ciclo.");
+    private void detectarCiclo() throws ItemNotFound {
+        if (vertices.length() < 2) {
+            JOptionPane.showMessageDialog(this, "Agrega al menos 2 zonas para detectar un ciclo.");
             return;
         }
 
-        String input = JOptionPane.showInputDialog(this,
-                "Ingrese la zona seleccionada");
-        if (input == null || input.trim().isEmpty()) {
+        String zona = (String) JOptionPane.showInputDialog(this, "Zona a revisar:", "Detectar ciclo",
+                JOptionPane.PLAIN_MESSAGE, null, vertices.toArray(), null);
+        if (zona == null) {
             return;
         }
 
-        boolean esCiclo = controller.isValidCycle(input);
-        JOptionPane.showMessageDialog(this,
-                esCiclo ? "Es un ciclo válido." : "No es un ciclo válido.");
+        boolean esCiclo = controller.isValidCycle(zona);
+        JOptionPane.showMessageDialog(this, esCiclo
+                ? "'" + zona + "' forma parte de un ciclo: se puede salir y volver a ella."
+                : "'" + zona + "' no forma parte de ningún ciclo.");
     }
 
     private void mostrarComponentesConexas() {
@@ -504,9 +523,9 @@ public class MainWindow extends JFrame {
     private void verificarSistemaConectado() {
         boolean conectado = controller.isSystemConnected();
         if (conectado) {
-            JOptionPane.showMessageDialog(this, "Las urbanizaciones están completamente conectado.");
+            JOptionPane.showMessageDialog(this, "Las urbanizaciones están completamente conectadas.");
         } else {
-            JOptionPane.showMessageDialog(this, "Las urbanizaciones NO están completamente conectado.");
+            JOptionPane.showMessageDialog(this, "Las urbanizaciones NO están completamente conectadas.");
         }
     }
 

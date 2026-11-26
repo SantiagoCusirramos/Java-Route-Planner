@@ -5,8 +5,6 @@ import model.Zone;
 import datastructures.btree.BTree;
 import graph.Graph;
 import datastructures.linkedlist.LinkedList;
-import datastructures.queue.LinkedQueue;
-import datastructures.stack.LinkedStack;
 import algorithms.Dijkstra;
 import algorithms.BreadthFirstSearch;
 import exceptions.ExceptionIsEmpty;
@@ -16,16 +14,14 @@ import exceptions.ItemDuplicated;
 public class CityController {
 	private Graph<String> urbanGraph;
 	private LinkedList<Zone> zones;
-	private LinkedQueue<String> routeHistory;
 
 	// Parámetros del sistema
-	private static final int ORDEN_ARBOL = 4;  // Orden del árbol B+ para cada zona
+	private static final int ORDEN_ARBOL = 4;  // Orden del árbol B para cada zona
 
 	// Constructor principal
 	public CityController() {
 		this.urbanGraph = new Graph<>(true, true); // Grafo dirigido y ponderado
 		this.zones = new LinkedList<>();
-		this.routeHistory = new LinkedQueue<>();
 	}
 
 	// ==================== GESTIÓN DE ZONAS ====================
@@ -40,14 +36,15 @@ public class CityController {
 			return false;
 		}
 
-		if (urbanGraph.searchVertex(zoneName)) {
+		zoneName = zoneName.trim();
+		if (urbanGraph.searchVertex(zoneName) || buscarZona(zoneName) != null) {
 			throw new ItemDuplicated("La zona '" + zoneName + "' ya existe en el sistema");
 		}
 
 		// Agregar al grafo urbano
 		urbanGraph.insertVertex(zoneName);
 
-		// Crear zona con su árbol B+
+		// Crear zona con su árbol B
 		Zone nuevaZona = new Zone(zoneName, ORDEN_ARBOL);
 		zones.insertLast(nuevaZona);
 
@@ -126,6 +123,14 @@ public class CityController {
 			throw new ItemNotFound("La zona destino '" + zone2 + "' no existe.");
 		}
 
+		if (zone1.equalsIgnoreCase(zone2)) {
+			throw new IllegalArgumentException("Una zona no se puede conectar consigo misma.");
+		}
+
+		if (weight < 0) {
+			throw new IllegalArgumentException("El peso no puede ser negativo: Dijkstra solo funciona con pesos >= 0.");
+		}
+
 		if (urbanGraph.searchEdge(zone1, zone2, -1)) {
 			return false; // Ya existe conexión
 		}
@@ -155,9 +160,16 @@ public class CityController {
 		return true;
 	}
 
+	/**
+	 * Cambia el peso de la conexión entre dos zonas, en ambos sentidos si existen las dos aristas
+	 */
 	public boolean updateEdgeWeight(String zone1, String zone2, int newWeight) throws ItemNotFound {
 		if (!urbanGraph.searchVertex(zone1) || !urbanGraph.searchVertex(zone2)) {
 			throw new ItemNotFound("Una o ambas zonas no existen.");
+		}
+
+		if (newWeight < 0) {
+			throw new IllegalArgumentException("El peso no puede ser negativo.");
 		}
 
 		boolean updated1 = urbanGraph.modifyEdgeWeight(zone1, zone2, newWeight);
@@ -176,9 +188,8 @@ public class CityController {
 	 * Encuentra la ruta más corta entre dos zonas usando Dijkstra
 	 * @param origin Zona de origen
 	 * @param destination Zona de destino
-	 * @return Lista de zonas que forman la ruta más corta
+	 * @return Lista de zonas que forman la ruta más corta; vacía si no hay ruta
 	 * @throws ItemNotFound si alguna zona no existe
-	 * @throws ExceptionIsEmpty si no hay ruta
 	 */
 	public LinkedList<String> findShortestPath(String origin, String destination)
 			throws ItemNotFound, ExceptionIsEmpty {
@@ -191,22 +202,15 @@ public class CityController {
 			throw new ItemNotFound("La zona destino '" + destination + "' no existe");
 		}
 
-		LinkedList<String> path = Dijkstra.shortestPath(urbanGraph, origin, destination);
-		if (path != null && !path.isEmpty()) {
-			String routeRecord = origin + " -> " + destination + " (Dijkstra)";
-			routeHistory.enqueue(routeRecord);
-		}
-
-		return path;
+		return Dijkstra.shortestPath(urbanGraph, origin, destination);
 	}
 
 	/**
 	 * Encuentra cualquier camino entre dos zonas usando BFS
 	 * @param origin Zona de origen
 	 * @param destination Zona de destino
-	 * @return Lista de zonas que forman el camino
+	 * @return Lista de zonas que forman el camino; null si no hay camino
 	 * @throws ItemNotFound si alguna zona no existe
-	 * @throws ExceptionIsEmpty si no hay camino
 	 */
 	public LinkedList<String> findPath(String origin, String destination)
 			throws ItemNotFound, ExceptionIsEmpty {
@@ -220,19 +224,12 @@ public class CityController {
 		}
 
 		BreadthFirstSearch<String> bfs = new BreadthFirstSearch<>();
-		LinkedList<String> path = bfs.bfsPath(urbanGraph, origin, destination);
-
-		if (path != null && !path.isEmpty()) {
-			String routeRecord = origin + " -> " + destination + " (BFS)";
-			routeHistory.enqueue(routeRecord);
-		}
-
-		return path;
+		return bfs.bfsPath(urbanGraph, origin, destination);
 	}
 
-	// ==================== GESTIÓN DE ÁRBOLES B+ ====================
+	// ==================== GESTIÓN DE ÁRBOLES B ====================
 	/**
-	 * Añade un distrito (nodo) al árbol B+ de una zona
+	 * Añade un distrito (nodo) al árbol B de una zona
 	 * @param zoneName Zona donde se añadirá el distrito
 	 * @param districtName Nombre del distrito a añadir
 	 * @return true si se añade correctamente
@@ -256,7 +253,7 @@ public class CityController {
 	}
 
 	/**
-	 * Elimina un distrito del árbol B+ de una zona
+	 * Elimina un distrito del árbol B de una zona
 	 * @param zoneName Zona donde se encuentra el distrito
 	 * @param districtName Nombre del distrito a eliminar
 	 * @return true si se elimina correctamente
@@ -280,7 +277,7 @@ public class CityController {
 	}
 
 	/**
-	 * Busca un distrito en el árbol B+ de una zona
+	 * Busca un distrito en el árbol B de una zona
 	 * @param zoneName Zona donde buscar
 	 * @param districtName Nombre del distrito a buscar
 	 * @return true si el distrito existe
@@ -307,12 +304,16 @@ public class CityController {
 	}
 
 	/**
-	 * Detecta ciclos en el grafo
-	 * @param zonePath Ruta de zonas para verificar
-	 * @return true si es un ciclo válido
+	 * Indica si la zona forma parte de un ciclo: se puede salir de ella y volver por las calles
+	 * @param zoneName Zona a verificar
+	 * @return true si la zona está en un ciclo
+	 * @throws ItemNotFound si la zona no existe
 	 */
-	public boolean isValidCycle(String zonePath) throws ExceptionIsEmpty {
-		return urbanGraph.esCiclo(urbanGraph.findVertex(zonePath));
+	public boolean isValidCycle(String zoneName) throws ItemNotFound {
+		if (!urbanGraph.searchVertex(zoneName)) {
+			throw new ItemNotFound("La zona '" + zoneName + "' no existe.");
+		}
+		return urbanGraph.esCiclo(urbanGraph.findVertex(zoneName));
 	}
 
 	/**
@@ -324,7 +325,7 @@ public class CityController {
 	}
 
 	/**
-	 * Detecta zonas aisladas (sin conexiones)
+	 * Detecta zonas aisladas: no sale ni entra ninguna calle
 	 * @return Lista de zonas aisladas
 	 */
 	public LinkedList<String> getIsolatedZones() {
@@ -333,7 +334,7 @@ public class CityController {
 
 		for (int i = 0; i < allZones.length(); i++) {
 			String zone = allZones.getNodeAtIndex(i);
-			if (urbanGraph.gradoNodo(zone) == 0) {
+			if (urbanGraph.gradoNodo(zone) == 0 && urbanGraph.gradoEntrada(zone) == 0) {
 				isolatedZones.insertLast(zone);
 			}
 		}
@@ -386,7 +387,8 @@ public class CityController {
 			throw new ItemNotFound("La zona '" + oldName + "' no existe.");
 		}
 
-		if (urbanGraph.searchVertex(newName)) {
+		boolean mismaZona = oldName.equalsIgnoreCase(newName); // solo cambia mayúsculas/minúsculas
+		if (urbanGraph.searchVertex(newName) || (!mismaZona && buscarZona(newName) != null)) {
 			throw new ItemDuplicated("Ya existe una zona con el nombre '" + newName + "'.");
 		}
 
@@ -400,13 +402,6 @@ public class CityController {
 				zona.setNombre(newName); // Actualizar nombre
 				break;
 			}
-		}
-
-		// Actualizar conexiones internas entre zonas si es necesario
-		for (int i = 0; i < zones.length(); i++) {
-			Zone currentZone = zones.getNodeAtIndex(i);
-			BTree<Building> arbol = currentZone.getArbolDistrito();
-			// Actualizar referencias en el árbol B+ si se requiere
 		}
 
 		return true;

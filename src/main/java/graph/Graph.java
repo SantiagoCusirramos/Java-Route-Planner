@@ -2,7 +2,6 @@ package graph;
 
 import exceptions.ExceptionIsEmpty;
 import datastructures.linkedlist.LinkedList;
-import datastructures.queue.LinkedQueue;
 import datastructures.stack.LinkedStack;
 import datastructures.linkedlist.Node;
 
@@ -44,7 +43,7 @@ public class Graph<E> {
         if(vertexOri == null || vertexDes == null) {
             return;
         }
-        if(searchEdge(verOri, verDes, weight)){
+        if(searchEdge(verOri, verDes, -1)){ // no se permiten aristas repetidas, sin importar el peso
             return;
         }
 
@@ -57,7 +56,7 @@ public class Graph<E> {
         }
 
         if(!isDirected){
-            Edge<E> edgeInverse = new Edge<E>(vertexDes, weight);
+            Edge<E> edgeInverse = new Edge<E>(vertexOri, weight);
             vertexDes.getListAdj().insertLast(edgeInverse);
         }
     }
@@ -83,10 +82,6 @@ public class Graph<E> {
             current = current.getNext();
         }
         return null;
-    }
-
-    public boolean existVertex(E data) {
-        return findVertex(data) != null;
     }
 
     public boolean searchEdge(E data1, E data2, int weight) {
@@ -192,52 +187,13 @@ public class Graph<E> {
 
         while(current != null) {
             Edge<E> edge = current.getData();
-            if(edge.getRefDest().equals(item2) && edge.getWeight() == weight) {
+            // weight < 0 significa "con cualquier peso"
+            if(edge.getRefDest().equals(item2) && (weight < 0 || edge.getWeight() == weight)) {
                 return true;
             }
             current = current.getNext();
         }
         return false;
-    }
-
-    public void dfs(E data) throws ExceptionIsEmpty {
-        if (data == null) {
-            return;
-        }
-
-        Vertex<E> startVertex = findVertex(data);
-
-        if (startVertex == null) {
-            return;
-        }
-
-        resetVisitedFlags();
-        LinkedList<Vertex<E>> visitedVertices = dfsRecursive(startVertex, new LinkedList<Vertex<E>>());
-
-
-        Node<Vertex<E>> current = visitedVertices.getHead();
-        while (current != null) {
-            System.out.print(current.getData().getData() + " ");
-            current = current.getNext();
-        }
-    }
-
-    private LinkedList<Vertex<E>> dfsRecursive(Vertex<E> vertex, LinkedList<Vertex<E>> visitedList) {
-        vertex.setVisited(true);
-        visitedList.insertLast(vertex);
-
-        Node<Edge<E>> edgeNode = vertex.getListAdj().getHead();
-        while (edgeNode != null) {
-            Vertex<E> neighbor = edgeNode.getData().getRefDest();
-
-            if (!neighbor.isVisited()) {
-                neighbor.setVisited(true); // me siento seguro uwu - se que esta por las puras pero me siento seguro :p
-                dfsRecursive(neighbor, visitedList); // Llamada recursiva
-            }
-            edgeNode = edgeNode.getNext();
-        }
-
-        return visitedList;
     }
 
     // este es mi metodo aux para explorar y ponerlos todos como que no han sido visitaos
@@ -250,162 +206,87 @@ public class Graph<E> {
         }
     }
 
-//    -------------------------------------- A partir de aqui debemos de modificar
-
-    public void bfs(E data) throws ExceptionIsEmpty {
-        if (data == null) {
-            return;
-        }
-        Vertex<E> startVertex = findVertex(data);
-
-        if (startVertex == null) {
-            return;
-        }
-
-        resetVisitedFlags();
-
-        LinkedQueue<Vertex<E>> queue = new LinkedQueue<Vertex<E>>();
-        queue.enqueue(startVertex);
-        startVertex.setVisited(true);
-
-        while (!queue.isEmpty()) {
-            Vertex<E> currentVertex = queue.dequeue();
-
-            System.out.print(currentVertex.getData() + " ");
-
-            Node<Edge<E>> edgeNode = currentVertex.getListAdj().getHead();
-
-            while (edgeNode != null) {
-                Vertex<E> neighbor = edgeNode.getData().getRefDest();
-
-                if (!neighbor.isVisited()) {
-                    neighbor.setVisited(true);
-                    queue.enqueue(neighbor);
-                }
-
-                edgeNode = edgeNode.getNext();
-            }
-        }
-    }
-
-    public LinkedList<E> bfsPath(E v, E z) throws ExceptionIsEmpty { // repasar al mill millones por ciento
-        Vertex<E> start = findVertex(v);
-        Vertex<E> end = findVertex(z);
-        if (start == null || end == null) {
-            return null;
-        }
-
-        resetVisitedFlags();
-        LinkedQueue<Vertex<E>> queue = new LinkedQueue<Vertex<E>>();
-
-        LinkedList<Vertex<E>> vertices = new LinkedList<Vertex<E>>();
-        LinkedList<Vertex<E>> parents = new LinkedList<Vertex<E>>();
-
-        queue.enqueue(start);
-        start.setVisited(true);
-        vertices.insertLast(start);
-        parents.insertLast(null);
-
-        boolean found = false;
-
-        while (!queue.isEmpty() && !found) {
-            Vertex<E> current;
-
-            current = queue.dequeue();
-
-            if (current.equals(end)) {
-                found = true;
-                break;
-            }
-
-            // Explorar vecinos
-            Node<Edge<E>> edgeNode = current.getListAdj().getHead();
-            while (edgeNode != null) {
-                Vertex<E> neighbor = edgeNode.getData().getRefDest();
-
-                if (!neighbor.isVisited()) {
-                    neighbor.setVisited(true);
-                    queue.enqueue(neighbor);
-
-                    // Guardar relación padre-hijo
-                    vertices.insertLast(neighbor);
-                    parents.insertLast(current);
-                }
-
-                edgeNode = edgeNode.getNext();
-            }
-        }
-
-        // Reconstruir camino si se encontró
-        if (found) {
-            return reconstructPath(vertices, parents, end);
-        }
-
-        return null;
-    }
-
-    // Método auxiliar para reconstruir el camino
-    private LinkedList<E> reconstructPath(LinkedList<Vertex<E>> vertices, LinkedList<Vertex<E>> parents, Vertex<E> end) {
-        LinkedList<E> path = new LinkedList<E>();
-        Vertex<E> current = end;
-
-        while (current != null) {
-            path.insertFirst(current.getData());
-            current = findParent(vertices, parents, current);
-        }
-
-        return path;
-    }
-
-    // Método auxiliar para encontrar el padre
-    private Vertex<E> findParent(LinkedList<Vertex<E>> vertices, LinkedList<Vertex<E>> parents, Vertex<E> child) {
-        Node<Vertex<E>> vertexNode = vertices.getHead();
-        Node<Vertex<E>> parentNode = parents.getHead();
-
-        while (vertexNode != null && parentNode != null) {
-            if (vertexNode.getData().equals(child)) {
-                return parentNode.getData();
-            }
-            vertexNode = vertexNode.getNext();
-            parentNode = parentNode.getNext();
-        }
-
-        return null;
-    }
-
-    public LinkedList<E> shortPath(E v, E z) throws ExceptionIsEmpty {
-        return bfsPath(v, z); // En grafos no ponderados, BFS ya da el camino más corto
-    }
-
-    public boolean isConexo() { // sencillito este emtodo xddd
+    /**
+     * Conexo: en un grafo no dirigido, todos los vértices se alcanzan entre sí.
+     * En un grafo dirigido se exige conexidad fuerte: desde el primer vértice se llega a todos
+     * y todos llegan al primero (si no, habría zonas a las que se entra pero no se sale).
+     */
+    public boolean isConexo() {
         if (listVertex.isEmpty()) {
             return true; // Un grafo vacío se considera conexo
         }
 
-        resetVisitedFlags();
         Vertex<E> startVertex = listVertex.getHead().getData();
-        LinkedList<Vertex<E>> visitedVertices = dfsRecursive(startVertex, new LinkedList<Vertex<E>>()); // usamos el metodo de exploracion
+        int total = listVertex.length();
 
-        return visitedVertices.length() == listVertex.length(); // comparamos con la cantidad total de elementos que tenemos o,o
-    }
-
-
-    // Obtener vértice previo
-    private Vertex<E> getPrevious(Vertex<E> v, LinkedList<Vertex<E>> previous) {
-        Node<Vertex<E>> vertexNode = listVertex.getHead();
-        Node<Vertex<E>> previousNode = previous.getHead();
-
-        while (vertexNode != null && previousNode != null) {
-            if (vertexNode.getData().equals(v)) {
-                return previousNode.getData();
-            }
-            vertexNode = vertexNode.getNext();
-            previousNode = previousNode.getNext();
+        if (countReachable(startVertex, false) != total) {
+            return false;
         }
-        return null;
+        return !isDirected || countReachable(startVertex, true) == total;
     }
 
-    public int gradoNodo(E data) { // entiendo que es la cantidad de nodos conectados
+    /** Cuenta los vértices alcanzables desde start; con reverse=true recorre las aristas al revés. */
+    private int countReachable(Vertex<E> start, boolean reverse) {
+        resetVisitedFlags();
+        LinkedStack<Vertex<E>> pending = new LinkedStack<>();
+        start.setVisited(true);
+        pending.push(start);
+        int count = 0;
+
+        while (!pending.isEmpty()) {
+            Vertex<E> current;
+            try {
+                current = pending.pop();
+            } catch (ExceptionIsEmpty e) {
+                break;
+            }
+            count++;
+
+            LinkedList<Vertex<E>> next = reverse ? predecessors(current) : successors(current);
+            Node<Vertex<E>> node = next.getHead();
+            while (node != null) {
+                if (!node.getData().isVisited()) {
+                    node.getData().setVisited(true);
+                    pending.push(node.getData());
+                }
+                node = node.getNext();
+            }
+        }
+        return count;
+    }
+
+    /** Vértices a los que sale una arista desde v. */
+    private LinkedList<Vertex<E>> successors(Vertex<E> v) {
+        LinkedList<Vertex<E>> result = new LinkedList<>();
+        Node<Edge<E>> edgeNode = v.getListAdj().getHead();
+        while (edgeNode != null) {
+            result.insertLast(edgeNode.getData().getRefDest());
+            edgeNode = edgeNode.getNext();
+        }
+        return result;
+    }
+
+    /** Vértices desde los que entra una arista a v. */
+    private LinkedList<Vertex<E>> predecessors(Vertex<E> v) {
+        LinkedList<Vertex<E>> result = new LinkedList<>();
+        Node<Vertex<E>> current = listVertex.getHead();
+        while (current != null) {
+            Node<Edge<E>> edgeNode = current.getData().getListAdj().getHead();
+            while (edgeNode != null) {
+                if (edgeNode.getData().getRefDest().equals(v)) {
+                    result.insertLast(current.getData());
+                    break;
+                }
+                edgeNode = edgeNode.getNext();
+            }
+            current = current.getNext();
+        }
+        return result;
+    }
+
+
+    /** Grado de salida: cantidad de aristas que salen del vértice. */
+    public int gradoNodo(E data) {
         Vertex<E> vertex = findVertex(data);
         if (vertex == null) {
             return -1;
@@ -414,169 +295,65 @@ public class Graph<E> {
         return vertex.getListAdj().length();
     }
 
-    public boolean esCamino(LinkedList<E> nodos) { // camion es, juntar todos los nodos pero sin el incio o el final
-        if (nodos == null || nodos.length() < 2) {
-            return false;
+    /** Grado de entrada: cantidad de aristas que llegan al vértice. */
+    public int gradoEntrada(E data) {
+        Vertex<E> vertex = findVertex(data);
+        if (vertex == null) {
+            return -1;
         }
-
-        Node<E> current = nodos.getHead();
-        Node<E> next = current.getNext();
-
-        while (next != null) {
-            Vertex<E> v1 = findVertex(current.getData());
-            Vertex<E> v2 = findVertex(next.getData());
-
-            if (v1 == null || v2 == null || !sonAdyacentes(v1, v2)) {
-                return false;
-            }
-
-            current = next;
-            next = next.getNext();
-        }
-
-        E primero = nodos.getNodeAtIndex(0);
-        E ultimo = nodos.getNodeAtIndex(nodos.length() - 1);
-        return !primero.equals(ultimo);
-
+        return isDirected ? predecessors(vertex).length() : vertex.getListAdj().length();
     }
 
-    private boolean sonAdyacentes(Vertex<E> v1, Vertex<E> v2) { // solo valida si es o no es o,O
-        Node<Edge<E>> edgeNode = v1.getListAdj().getHead();
-        while (edgeNode != null) {
-            if (edgeNode.getData().getRefDest().equals(v2)) {
-                return true;
-            }
-            edgeNode = edgeNode.getNext();
-        }
-        return false;
-    }
-
-    public boolean esCiclo(Vertex<E> startVertex) throws ExceptionIsEmpty {
+    /**
+     * Indica si el vértice forma parte de un ciclo.
+     * Dirigido: existe un camino que sale de startVertex y vuelve a él.
+     * No dirigido: hay un ciclo (de 3 o más vértices) en su componente.
+     */
+    public boolean esCiclo(Vertex<E> startVertex) {
         if (startVertex == null) {
             return false;
         }
 
         resetVisitedFlags();
-        LinkedStack<Vertex<E>> stack = new LinkedStack<>();
-        LinkedStack<Vertex<E>> path = new LinkedStack<>();
-
-        return detectCycleDFS(startVertex, null, stack, path);
+        if (isDirected) {
+            return returnsTo(startVertex, startVertex);
+        }
+        return hasUndirectedCycle(startVertex, null);
     }
 
-    private boolean detectCycleDFS(Vertex<E> current, Vertex<E> parent,
-                                   LinkedStack<Vertex<E>> stack, LinkedStack<Vertex<E>> path) throws ExceptionIsEmpty {
-        current.setVisited(true);
-        stack.push(current);
-        path.push(current);
-
+    private boolean returnsTo(Vertex<E> current, Vertex<E> target) {
         Node<Edge<E>> edgeNode = current.getListAdj().getHead();
         while (edgeNode != null) {
             Vertex<E> neighbor = edgeNode.getData().getRefDest();
-
-            if (!neighbor.isVisited()) {
-                if (detectCycleDFS(neighbor, current, stack, path)) {
-                    return true;
-                }
+            if (neighbor.equals(target)) {
+                return true;
             }
-
-            else if (!neighbor.equals(parent)) {
-
-                if (!path.isEmpty() && path.top().equals(neighbor)) {
+            if (!neighbor.isVisited()) {
+                neighbor.setVisited(true);
+                if (returnsTo(neighbor, target)) {
                     return true;
                 }
             }
             edgeNode = edgeNode.getNext();
         }
-
-        stack.pop();
-        path.pop();
-
         return false;
     }
 
-    public boolean esCicloAUX(LinkedList<E> nodos) {
-        if (!esCamino(nodos) || nodos.length() < 3) { // Vemos si es camino, si lo es F, no sera ciclo
-            return false;
-        }
-
-        E primero = nodos.getNodeAtIndex(0);
-        E ultimo = nodos.getNodeAtIndex(nodos.length() - 1);
-
-        if (!primero.equals(ultimo)) {
-            return false;
-        }
-
-        LinkedList<E> nodosIntermedios = new LinkedList<E>();
-        for (int i = 1; i < nodos.length() - 1; i++) {
-            E nodo = nodos.getNodeAtIndex(i);
-
-            if (nodosIntermedios.search(nodo)) {
-                return false;
-            }
-            nodosIntermedios.insertLast(nodo);
-        }
-
-        return true;
-    }
-
-    public boolean esRueda(LinkedList<E> nodos) {
-        if (nodos == null || nodos.length() < 4) {
-            return false;
-        }
-
-        Vertex<E> centro = null;
-        int n = nodos.length();
-
-        Node<E> current = nodos.getHead();
-        while (current != null) {
-            Vertex<E> v = findVertex(current.getData());
-            if (v != null && gradoNodo(v.getData()) == n - 1) {
-                centro = v;
-                break;
-            }
-            current = current.getNext();
-        }
-
-        if (centro == null) {
-            return false;
-        }
-
-        LinkedList<E> nodosCiclo = new LinkedList<E>();
-        current = nodos.getHead();
-        while (current != null) {
-            if (!current.getData().equals(centro.getData())) {
-                nodosCiclo.insertLast(current.getData());
-            }
-            current = current.getNext();
-        }
-
-        return esCicloAUX(nodosCiclo);
-    }
-
-    public boolean esCompleto() {
-        int n = listVertex.length();
-        if (n == 0) {
-            return true;
-        }
-
-        Node<Vertex<E>> current = listVertex.getHead();
-        while (current != null) {
-            Vertex<E> v1 = current.getData();
-            Node<Vertex<E>> other = listVertex.getHead();
-
-            while (other != null) {
-                Vertex<E> v2 = other.getData();
-                if (!v1.equals(v2)) {
-                    if (!sonAdyacentes(v1, v2) || (isDirected && !sonAdyacentes(v2, v1))) {
-                        return false;
-                    }
+    private boolean hasUndirectedCycle(Vertex<E> current, Vertex<E> parent) {
+        current.setVisited(true);
+        Node<Edge<E>> edgeNode = current.getListAdj().getHead();
+        while (edgeNode != null) {
+            Vertex<E> neighbor = edgeNode.getData().getRefDest();
+            if (!neighbor.isVisited()) {
+                if (hasUndirectedCycle(neighbor, current)) {
+                    return true;
                 }
-                other = other.getNext();
+            } else if (!neighbor.equals(parent)) {
+                return true; // vecino ya visitado que no es el padre: se cerró un ciclo
             }
-            current = current.getNext();
+            edgeNode = edgeNode.getNext();
         }
-
-        return true;
+        return false;
     }
 
     public LinkedList<E> getVertices() {
@@ -590,6 +367,10 @@ public class Graph<E> {
         return vertices;
     }
 
+    /**
+     * Componentes conexas. En un grafo dirigido se calculan ignorando el sentido de las aristas
+     * (componentes débilmente conexas): dos zonas están juntas si hay calles entre ellas en algún sentido.
+     */
     public LinkedList<LinkedList<E>> getConnectedComponents() {
         LinkedList<LinkedList<E>> components = new LinkedList<>();
         resetVisitedFlags();
@@ -599,13 +380,36 @@ public class Graph<E> {
         while (current != null) {
             Vertex<E> vertex = current.getData();
             if (!vertex.isVisited()) {
-                LinkedList<Vertex<E>> componentVertices = dfsRecursive(vertex, new LinkedList<>());
                 LinkedList<E> componentData = new LinkedList<>();
+                LinkedStack<Vertex<E>> pending = new LinkedStack<>();
+                vertex.setVisited(true);
+                pending.push(vertex);
 
-                Node<Vertex<E>> node = componentVertices.getHead();
-                while (node != null) {
-                    componentData.insertLast(node.getData().getData());
-                    node = node.getNext();
+                while (!pending.isEmpty()) {
+                    Vertex<E> v;
+                    try {
+                        v = pending.pop();
+                    } catch (ExceptionIsEmpty e) {
+                        break;
+                    }
+                    componentData.insertLast(v.getData());
+
+                    LinkedList<Vertex<E>> neighbors = successors(v);
+                    if (isDirected) {
+                        Node<Vertex<E>> in = predecessors(v).getHead();
+                        while (in != null) {
+                            neighbors.insertLast(in.getData());
+                            in = in.getNext();
+                        }
+                    }
+                    Node<Vertex<E>> n = neighbors.getHead();
+                    while (n != null) {
+                        if (!n.getData().isVisited()) {
+                            n.getData().setVisited(true);
+                            pending.push(n.getData());
+                        }
+                        n = n.getNext();
+                    }
                 }
                 components.insertLast(componentData);
             }

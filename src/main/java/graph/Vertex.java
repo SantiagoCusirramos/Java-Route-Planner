@@ -33,14 +33,20 @@ public class Vertex<E> {
         this.data = data;
     }
 
+    @Override
     public boolean equals(Object o){
-        if (o instanceof Vertex<?>) {
-            Vertex<E> v = (Vertex<E>) o;
+        if (o instanceof Vertex<?> v) {
             return this.data.equals(v.getData());
         }
         return false;
     }
 
+    @Override
+    public int hashCode() {
+        return data == null ? 0 : data.hashCode();
+    }
+
+    @Override
     public String toString(){
         return this.data + "-->" + this.listAdj.toString() + "\n";
     }

@@ -19,10 +19,6 @@ public class BTree<E extends Comparable<E>> {
         return this.root == null;
     }
 
-    public int size() {
-        return this.order;
-    }
-
     public void insert(E cl) {
         up = false;
         E mediana;
@@ -50,8 +46,7 @@ public class BTree<E extends Comparable<E>> {
             boolean fl;
             fl = current.searchNode(cl, pos);
 
-            if (fl) {
-                System.out.println("Item duplicado\n");
+            if (fl) { // clave repetida: no se inserta
                 up = false;
                 return null;
             }
@@ -135,29 +130,6 @@ public class BTree<E extends Comparable<E>> {
         return false;
     }
 
-    public E searchX(E data) {
-        return searchRecursiveX(root, data);
-    }
-
-    private E searchRecursiveX(BNode<E> current, E data) {
-        if (current == null) {
-            return null;
-        }
-
-        int[] pos = new int[1];
-        boolean found = current.searchNode(data, pos);
-
-        if (found) {
-            return current.keys[pos[0]];
-        }
-
-        if (pos[0] < current.childs.length && current.childs[pos[0]] != null) {
-            return searchRecursiveX(current.childs[pos[0]], data);
-        }
-
-        return null;
-    }
-
     //    ---------------------------GET------------------------------------
     public BNode<E> getRoot() {
         return this.root;
@@ -169,6 +141,11 @@ public class BTree<E extends Comparable<E>> {
             return; // sin dato no se puede trabajar
         }
         delete(root, cl);
+
+        // Si la raíz quedó sin claves, el árbol baja un nivel
+        if (root != null && root.count == 0) {
+            root = root.childs[0];
+        }
     }
 
     public boolean delete(BNode<E> node, E key) {
@@ -184,9 +161,14 @@ public class BTree<E extends Comparable<E>> {
                 removeKey(node, pos[0]);
                 return true;
             } else {
+                // Clave en nodo interno: se reemplaza por su predecesor y se borra el predecesor
                 E pred = getPredecessor(node, pos[0]);
                 node.keys[pos[0]] = pred;
-                return delete(node.childs[pos[0]], pred);
+                boolean isDeleted = delete(node.childs[pos[0]], pred);
+                if (node.childs[pos[0]].count < (order - 1) / 2) {
+                    fix(node, pos[0]);
+                }
+                return isDeleted;
             }
 
         } else {
@@ -210,10 +192,11 @@ public class BTree<E extends Comparable<E>> {
         node.count--;
     }
 
+    // Predecesor = la clave más grande del subárbol izquierdo (siempre por el último hijo)
     private E getPredecessor(BNode<E> node, int index) {
         BNode<E> current = node.childs[index];
-        while (current.childs[index + 1] != null) {
-            current = current.childs[index + 1];
+        while (current.childs[current.count] != null) {
+            current = current.childs[current.count];
         }
         return current.keys[current.count - 1];
     }
@@ -364,22 +347,4 @@ public class BTree<E extends Comparable<E>> {
         return s;
     }
 
-    public String toStructuredString() {
-        StringBuilder sb = new StringBuilder();
-        toStructuredString(root, sb, 0);
-        return sb.toString();
-    }
-
-    private void toStructuredString(BNode<E> node, StringBuilder sb, int level) {
-        if (node == null) return;
-
-        for (int i = 0; i < node.count; i++) {
-            for (int j = 0; j < level; j++) sb.append("   ");
-            sb.append("- ").append(node.keys[i]).append("\n");
-        }
-
-        for (int i = 0; i <= node.count; i++) {
-            toStructuredString(node.childs[i], sb, level + 1);
-        }
-    }
 }
