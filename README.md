@@ -79,7 +79,7 @@ MainWindow ──► CityController ──► Graph<String>  ──► Dijkstra 
 Team project. Everyone's commits are kept in the history.
 
 - **Joaquín Yato** ([@JoaquinYato](https://github.com/JoaquinYato)): user interface and controller
-- **Fabián Huamani** ([@IamGenarov](https://github.com/IamGenarov)): controller and domain model
+- **Fabián Huamani** ([@genarovvv](https://github.com/genarovvv)): controller and domain model
 - **Ángel Salas Zapata** ([@AngelSalasZapata](https://github.com/AngelSalasZapata)): `BreadthFirstSearch` class, UI styling and code review
 - **Santiago Cusirramos** ([@SantiagoCusirramos](https://github.com/SantiagoCusirramos)): data structures, graph, Dijkstra and B-Tree
 
